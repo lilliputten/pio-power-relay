@@ -1,6 +1,6 @@
 {
-  "name": "pio-esp32-tft-screen",
-  "description": "ESP32 TFT Screen Test PlatformIO Project ",
+  "name": "pio-power-relay",
+  "description": "ESP32 Controlled Power Relay PlatformIO Project",
   "version": "0.0.0",
   "timetag": "261001-2139",
   "timestamp": "2026.10.01 21:39:20 +0300",
@@ -10,10 +10,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git@github.com:lilliputten/pio-esp32-tft-screen.git"
+    "url": "git@github.com:lilliputten/pio-power-relay.git"
   },
   "bugs": {
-    "url": "git@github.com:lilliputten/pio-esp32-tft-screen.git/issues"
+    "url": "git@github.com:lilliputten/pio-power-relay.git/issues"
   },
   "dependencies": {
     "npm-run-all": "^4.1.5"

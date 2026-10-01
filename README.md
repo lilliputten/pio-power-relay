@@ -11,7 +11,7 @@
 
 ## 🔗 Resources
 
-- [Github repo](https://github.com/lilliputten/pio-esp32-tft-screen)
+- [Github repo](https://github.com/lilliputten/pio-power-relay)
 
 ## 🔗 Materials
 
