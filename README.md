@@ -3,7 +3,7 @@
  @changed 2026.10.01, 21:35
 -->
 
-# ESP32 TFT Screen Test PlatformIO Project
+# ESP32 Controlled Power Relay PlatformIO Project
 
 ## ℹ️ Build info (auto-generated)
 
