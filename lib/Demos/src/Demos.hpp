@@ -20,6 +20,10 @@ class Demos {
   void demoPrint(TFT_eSPI &tft);
   void demoFont(TFT_eSPI &tft);
   void demoEnv();
+  // TempSensor
   void demoTempSensorInit();
-  void demoTempSensorShow(TFT_eSPI &tft);
+  int demoTempSensorShow(TFT_eSPI &tft, int yp);
+  // Relay
+  void demoRelayInit();
+  int demoRelayTick(TFT_eSPI &tft, int yp);
 };

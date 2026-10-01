@@ -24,6 +24,7 @@
     "upload": "pio run -e esp32dev -t upload",
     "clean": "pio run -e esp32dev -t clean",
     "monitor": "pio device monitor",
+    "check": "pio check -e esp32dev",
     "ide-config": "pio init --ide vim",
     "test": "echo \"Error: no test specified\" && exit 1"
   }

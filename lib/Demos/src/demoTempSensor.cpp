@@ -6,20 +6,20 @@
 const int oneWireBus = 4;
 
 // Setup a oneWire instance to communicate with any OneWire devices
-OneWire oneWire(oneWireBus);
+static OneWire oneWire(oneWireBus);
 
 // Pass our oneWire reference to Dallas Temperature sensor
 DallasTemperature sensors(&oneWire);
 
 // Iteration count
-long _count = 0;
+static long _count = 0;
 
 void Demos::demoTempSensorInit() {
   // Start the DS18B20 sensor
   sensors.begin();
 }
 
-void Demos::demoTempSensorShow(TFT_eSPI &tft) {
+int Demos::demoTempSensorShow(TFT_eSPI &tft, int yp) {
   // Scan sensor data and print on both serial and tft screen...
   sensors.requestTemperatures();
   float temperatureC = sensors.getTempCByIndex(0);
@@ -28,10 +28,11 @@ void Demos::demoTempSensorShow(TFT_eSPI &tft) {
   Serial.println("ºC");
 
   int xp = 10;
-  int yp = 10;
+  // int yp = 10;
   int font1 = FONT_SM;
   int font2 = FONT_MD;
   int fh = tft.fontHeight(font1);
+  int fh2 = tft.fontHeight(font2);
   int yp2 = yp + fh;
 
   // tft.fillScreen(TFT_BLACK);
@@ -61,4 +62,6 @@ void Demos::demoTempSensorShow(TFT_eSPI &tft) {
   tft.print(temperatureC, 1);
   tft.print("`C");
   tft.println("  -");
+
+  return fh + fh2;
 }

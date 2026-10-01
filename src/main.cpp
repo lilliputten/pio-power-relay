@@ -7,7 +7,7 @@ Demos demos;
 // WiFiUtils wiFiUtils;
 
 // Iteration count
-long count = 0;
+static long count = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -20,6 +20,7 @@ void setup() {
   // wiFiUtils.scanWifi();
 
   demos.demoTempSensorInit();
+  demos.demoRelayInit();
 
   Serial.println("Setup done");
 }
@@ -28,7 +29,9 @@ void loop() {
   count++;
   Serial.println("Loop count: " + String(count));
 
-  demos.demoTempSensorShow(tftUtils.tft);
+  int yp = 10;
+  int hTempSensor = demos.demoTempSensorShow(tftUtils.tft, yp);
+  int hRelay = demos.demoRelayTick(tftUtils.tft, yp + hTempSensor);
 
   // // demos.demoPrint(tftUtils.tft);
   // demos.demoFont(tftUtils.tft);
