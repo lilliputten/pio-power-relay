@@ -24,9 +24,6 @@ int Demos::demoTempSensorShow(TFT_eSPI &tft, int yp) {
   sensors.requestTemperatures();
   float temperatureC = sensors.getTempCByIndex(0);
 
-  Serial.print(temperatureC);
-  Serial.println("ºC");
-
   int xp = 10;
   // int yp = 10;
   int font1 = FONT_SM;
@@ -43,20 +40,23 @@ int Demos::demoTempSensorShow(TFT_eSPI &tft, int yp) {
 
   long rand = random(0, 120);
 
-  _count++;
-
+  // Note different degree symbols for console and tft fonts
+  Serial.printf("%.1fºC\n", temperatureC);
   // Serial.print("Loop: ");
   // Serial.println(_count);
   Serial.print("Random: ");
   Serial.println(rand);
 
-  tft.printf("Loop: %d / %d  \n");
+  tft.printf("Loop: %d / %d  \n", _count, rand);
   // Place extra spaces to cleanup the previous output text
 
   tft.setCursor(xp, yp2, font2);
 
-  tft.printf("T: %.1f`C  \n", temperatureC);
-  // // Place extra spaces to cleanup the previous output text
+  tft.printf("%.1f`C  \n", temperatureC);
+  // Place extra spaces to cleanup the previous output text
+
+  // Next loop interation
+  _count++;
 
   // Return the total height of the 1st (normal) and the 2nd (large) lines
   return fh + fh2;

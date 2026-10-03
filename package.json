@@ -1,9 +1,9 @@
 {
   "name": "pio-power-relay",
   "description": "ESP32 Controlled Power Relay PlatformIO Project",
-  "version": "0.0.0",
-  "timetag": "261001-2148",
-  "timestamp": "2026.10.01 21:48:33 +0300",
+  "version": "0.0.1",
+  "timetag": "261003-2318",
+  "timestamp": "2026.10.03 23:18:32 +0300",
   "changed": "2026.10.03, 20:08",
   "main": "src/main.cpp",
   "author": "lilliputten@gmail.com",

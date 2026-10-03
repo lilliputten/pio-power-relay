@@ -1,11 +1,11 @@
 #include "WiFiUtils.hpp"
 
 void WiFiUtils::scanWifi() {
-  Serial.println("Scan start");
+  Serial.println("WiFi Scan started");
 
   // WiFi.scanNetworks will return the number of networks found.
   int n = WiFi.scanNetworks();
-  Serial.println("Scan done");
+  Serial.println("WiFi Scan done");
   if (n == 0) {
     Serial.println("no networks found");
   } else {

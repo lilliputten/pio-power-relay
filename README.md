@@ -7,7 +7,7 @@
 
 ## ℹ️ Build info (auto-generated)
 
-- Project info: v.0.0.0 / 2026.10.01 21:48:33 +0300
+- Project info: v.0.0.1 / 2026.10.03 23:18:32 +0300
 
 ## Configuration
 

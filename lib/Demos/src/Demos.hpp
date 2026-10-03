@@ -26,4 +26,7 @@ class Demos {
   // Relay
   void demoRelayInit();
   int demoRelayTick(TFT_eSPI &tft, int yp);
+  // SD Card
+  void demoSDCardInit();
+  int demoSDCardTick(TFT_eSPI &tft, int yp);
 };
