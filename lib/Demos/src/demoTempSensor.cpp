@@ -45,23 +45,19 @@ int Demos::demoTempSensorShow(TFT_eSPI &tft, int yp) {
 
   _count++;
 
-  Serial.print("Loop: ");
-  Serial.println(_count);
+  // Serial.print("Loop: ");
+  // Serial.println(_count);
   Serial.print("Random: ");
   Serial.println(rand);
 
-  tft.print("Loop: ");
-  tft.print(_count);
-  tft.print(" / ");
-  tft.print(rand);
+  tft.printf("Loop: %d / %d  \n");
   // Place extra spaces to cleanup the previous output text
-  tft.println("   ");
 
   tft.setCursor(xp, yp2, font2);
 
-  tft.print(temperatureC, 1);
-  tft.print("`C");
-  tft.println("  -");
+  tft.printf("T: %.1f`C  \n", temperatureC);
+  // // Place extra spaces to cleanup the previous output text
 
+  // Return the total height of the 1st (normal) and the 2nd (large) lines
   return fh + fh2;
 }

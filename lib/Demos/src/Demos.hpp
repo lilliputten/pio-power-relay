@@ -6,8 +6,8 @@
 #include "TFTUtils.hpp"
 
 // Temp sensor
-#include <OneWire.h>
 #include <DallasTemperature.h>
+#include <OneWire.h>
 
 #define TFT_GREY 0x5AEB  // New color
 // #define TFT_BROWN 0x38E0

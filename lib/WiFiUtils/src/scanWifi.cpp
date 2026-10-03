@@ -63,4 +63,3 @@ void WiFiUtils::scanWifi() {
   // Delete the scan result to free memory for code below.
   WiFi.scanDelete();
 }
-

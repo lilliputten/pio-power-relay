@@ -7,7 +7,11 @@
 
 ## ℹ️ Build info (auto-generated)
 
-- Project info: v.0.0.0 / 2026.10.01 21:39:20 +0300
+- Project info: v.0.0.0 / 2026.10.01 21:48:33 +0300
+
+## Configuration
+
+Seee parameters setup in the [platformio.ini](platformio.ini).
 
 ## 🔗 Resources
 

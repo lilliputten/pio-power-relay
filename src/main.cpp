@@ -7,12 +7,14 @@ Demos demos;
 // WiFiUtils wiFiUtils;
 
 // Iteration count
-static long count = 0;
+static long _count = 0;
 
 void setup() {
   Serial.begin(115200);
 
   delay(100);
+  Serial.print("\nProject: ");
+  Serial.println(PROJECT_INFO);
 
   tftUtils.initTFT();
 
@@ -26,8 +28,7 @@ void setup() {
 }
 
 void loop() {
-  count++;
-  Serial.println("Loop count: " + String(count));
+  Serial.println("\nLoop: " + String(_count));
 
   int yp = 10;
   int hTempSensor = demos.demoTempSensorShow(tftUtils.tft, yp);
@@ -36,6 +37,9 @@ void loop() {
   // // demos.demoPrint(tftUtils.tft);
   // demos.demoFont(tftUtils.tft);
 
-  // while(1) yield(); // We must yield() to stop a watchdog timeout.
-  delay(5000);
+  // Next loop interation
+  _count++;
+
+  // while(1) yield(); // TODO: Stop a watchdog timeout to run the code once
+  delay(TICK_DELAY);
 }

@@ -7,4 +7,3 @@ void WiFiUtils::initWiFi() {
   WiFi.disconnect();
   delay(100);
 }
-

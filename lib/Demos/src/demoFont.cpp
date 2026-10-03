@@ -20,9 +20,12 @@ void Demos::demoFont(TFT_eSPI &tft) {
   tft.drawString("08:45678901234567890123456789", 0, 7 * FONT_XS_SIZE, FONT_XS);
   tft.drawString("09:45678901234567890123456789", 0, 8 * FONT_XS_SIZE, FONT_XS);
   tft.drawString("10:45678901234567890123456789", 0, 9 * FONT_XS_SIZE, FONT_XS);
-  tft.drawString("11:45678901234567890123456789", 0, 10 * FONT_XS_SIZE, FONT_XS);
-  tft.drawString("12:45678901234567890123456789", 0, 11 * FONT_XS_SIZE, FONT_XS);
-  tft.drawString("13:45678901234567890123456789", 0, 12 * FONT_XS_SIZE, FONT_XS);
+  tft.drawString("11:45678901234567890123456789", 0, 10 * FONT_XS_SIZE,
+                 FONT_XS);
+  tft.drawString("12:45678901234567890123456789", 0, 11 * FONT_XS_SIZE,
+                 FONT_XS);
+  tft.drawString("13:45678901234567890123456789", 0, 12 * FONT_XS_SIZE,
+                 FONT_XS);
 
   delay(WAIT);
 
@@ -37,7 +40,7 @@ void Demos::demoFont(TFT_eSPI &tft) {
   tft.drawString("abcdefghijklmnopqrstuvw", 0, 48, 2);
   int xpos = 0;
   xpos += tft.drawString("xyz{|}~", 0, 64, 2);
-  tft.drawChar(127, xpos, 64, 2); // Degree character
+  tft.drawChar(127, xpos, 64, 2);  // Degree character
   delay(WAIT);
 
   tft.fillScreen(TFT_BLACK);
@@ -178,4 +181,3 @@ void Demos::demoFont(TFT_eSPI &tft) {
   tft.drawNumber(millis() - targetTime, 0, 100, 4);
   delay(BIG_WAIT);
 }
-

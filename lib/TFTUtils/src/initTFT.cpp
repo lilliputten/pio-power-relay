@@ -6,4 +6,3 @@ void TFTUtils::initTFT() {
   tft.fillScreen(TFT_BLACK);
   tft.setTextPadding(10);
 }
-

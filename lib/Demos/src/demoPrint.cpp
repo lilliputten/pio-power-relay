@@ -8,8 +8,9 @@ void Demos::demoPrint(TFT_eSPI &tft) {
   tft.fillScreen(TFT_GREY);
 
   // Set "cursor" at top left corner of display (0,0) and select font 2
-  // (cursor will move to next line automatically during printing with 'tft.println'
-  // or stay on the line is there is room for the text with tft.print)
+  // (cursor will move to next line automatically during printing with
+  // 'tft.println' or stay on the line is there is room for the text with
+  // tft.print)
   tft.setCursor(0, 0, 2);
   // Set the font colour to be white with a black background, set text size
   // multiplier to 1
@@ -45,8 +46,7 @@ void Demos::demoPrint(TFT_eSPI &tft) {
   tft.print("Hexadecimal = ");
   tft.println((int)fnumber, HEX);  // Print as integer number in Hexadecimal
 
-  while(1) yield(); // We must yield() to stop a watchdog timeout.
+  while (1) yield();  // We must yield() to stop a watchdog timeout.
 
   // delay(5000);
 }
-
