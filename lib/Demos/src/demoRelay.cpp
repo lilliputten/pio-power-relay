@@ -5,7 +5,7 @@ static long _count = 0;
 
 void Demos::demoRelayInit() {
   Serial.println("Relay init");
-  // Initialize pin
+  // Initialize pins
   pinMode(RELAY_CH1, OUTPUT);
   // Set initial state to OFF
   digitalWrite(RELAY_CH1, LOW);

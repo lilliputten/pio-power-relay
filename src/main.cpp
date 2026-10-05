@@ -1,5 +1,7 @@
 // #define USE_WIFI_UTILS 1
+// #define USE_RELAY 1
 
+#include "DataFiles.hpp"
 #include "Demos.hpp"
 #include "TFTUtils.hpp"
 
@@ -7,6 +9,9 @@ Demos demos;
 TFTUtils tftUtils;
 
 #ifdef USE_WIFI_UTILS
+// #ifndef WIFI_CONFIGS
+//   #error "Build halted: WIFI_CONFIGS is missing!"
+// #endif
 #include "WiFiUtils.hpp"
 WiFiUtils wiFiUtils;
 #endif
@@ -21,6 +26,8 @@ void setup() {
   Serial.printf("\nProject: %s @ %s\n", PROJECT_NAME, PROJECT_INFO);
 
   tftUtils.initTFT();
+
+  Serial.printf("TICK_DELAY: %d\n", TICK_DELAY);
 
 #ifdef WIFI_CONFIGS
   // WiFi Configs iteration demo (array expected)
@@ -37,19 +44,28 @@ void setup() {
   wiFiUtils.scanWifi();
 #endif
 
-  demos.demoTempSensorInit();
-  demos.demoRelayInit();
-  demos.demoSDCardInit();
+  DataFiles::initDataFiles();
 
-  Serial.println("Setup done");
+  demos.demoTempSensorInit();
+  demos.demoSDCardInit();
+#ifdef USE_RELAY
+  demos.demoRelayInit();
+#endif
+
+  Serial.println("-- Setup done --");
 }
 
 void loop() {
-  Serial.println("\nLoop: " + String(_count));
+  Serial.println();
+#if defined(TICK_DELAY) && (TICK_DELAY != 0)
+  Serial.println("Loop: " + String(_count));
+#endif
 
   int yp = 10;
   yp += demos.demoTempSensorShow(tftUtils.tft, yp);
+#ifdef USE_RELAY
   yp += demos.demoRelayTick(tftUtils.tft, yp);
+#endif
   // yp += demos.demoSDCardTick(tftUtils.tft, yp);
 
   // // demos.demoPrint(tftUtils.tft);
@@ -58,12 +74,13 @@ void loop() {
   // Next loop interation
   _count++;
 
-#if !defined(TICK_DELAY) || (TICK_DELAY == 0)
-  // TODO: Stop a watchdog timeout to run the code once
-  // while(1) yield();
-  vTaskDelete(NULL);
-#else
+#if defined(TICK_DELAY) && (TICK_DELAY != 0)
   // Do a delay otherwise
   delay(TICK_DELAY);
+#else
+  // TODO: Stop a watchdog timeout to run the code once
+  Serial.println("\n-- FINISHED --");
+  // while(1) yield();
+  vTaskDelete(NULL);
 #endif
 }

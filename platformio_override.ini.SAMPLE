@@ -1,22 +1,16 @@
 ; vim: ft=dosini
-; @changed 2026.10.03, 23:53
+; @changed 2026.10.05, 22:27
 ;
 ; Overrides custom build settings for PlatformIO.
 ; Update required existed, remove unused, or add new parameters.
 
 [env:esp32dev]
-upload_port = COM3
-monitor_port = COM3
+extends = core_settings
+; Redefine TICK_DELAY
+; build_unflags =
+;   -D TICK_DELAY=5000
 build_flags =
   ${core_settings.build_flags}
-  '-D WIFI_CONFIGS={"SSID-1 Login Password", "SSID-2 Login Password"}' ; Default WiFi access points list (optional, quoted strings array)
-  -D TICK_DELAY=5000 ; Delay between main loop ticks (optional, undefined or 0 = signle run)
-  ; Actual TFT PINOUT
-  -D TFT_DC=2 ; Data Command control pin
-  -D TFT_RST=14 ; Reset pin (could connect to RST pin)
-  -D TFT_CS=17 ; Chip select control pin
-  ; Power relay module setup
-  -D RELAY_CH1=21 ; Power relay channel 1 pin
-  -D RELAY_CH2=22 ; Power relay channel 2 pin
-  ; SD Card Slot
-  -D SD_CS=16 ; Sd Card Chip Select pin
+  ; -D TICK_DELAY=1000 ; Delay between main loop ticks (optional, undefined or 0 = single run)
+  ; '-D WIFI_CONFIGS={"SSID-1 Login Password", "SSID-2 Login Password"}' ; Default WiFi access points list (optional, quoted strings array)
+  ; -D DEBUG=1
