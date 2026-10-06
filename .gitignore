@@ -4,6 +4,7 @@
 .vscode/ipch
 
 # Unused & temp files
+*.log
 \!UNUSED
 ~*
 *_

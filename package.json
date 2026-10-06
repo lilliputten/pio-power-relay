@@ -18,6 +18,8 @@
     "email": "lilliputten@gmail.com"
   },
   "dependencies": {
+  },
+  "devDependencies": {
     "npm-run-all": "^4.1.5"
   },
   "scripts": {
@@ -26,7 +28,8 @@
     "upload": "echo --Upload (build if needed) the project to connected device-- && pio run -e esp32dev -t upload",
     "clean": "echo --Cleanup the project files-- && pio run -e esp32dev -t clean -v",
     "monitor": "echo --Run serial monitor for the connected device-- && pio device monitor",
-    "format": "echo --Format c files in the project-- && git ls-files | grep -E '\\\\.[ch]p*$' | xargs clang-format -i --verbose",
+    "format-project-files": "echo --Format files in the git project-- && git ls-files | grep -E '\\\\.[ch]p*$' | xargs clang-format -i --verbose",
+    "format": "echo --Format files-- && node find-source-files.js | xargs clang-format -i --verbose",
     "check": "echo --Run source code static analysisn-- && pio check -e esp32dev",
     "uploadfs": "echo --Re-upload LittleFS files from data folder-- && pio run --target buildfs && pio run --target uploadfs",
     "ide-config": "echo --Initialize vim environment-- && pio init --ide vim",
