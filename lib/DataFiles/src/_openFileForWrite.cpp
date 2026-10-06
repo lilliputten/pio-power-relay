@@ -1,6 +1,7 @@
 #include "DataFiles.hpp"
 
-// Open the file in write mode (creates a new file or overwrites an existing one)
+// Open the file in write mode (creates a new file or overwrites an existing
+// one)
 File DataFiles::_openFileForWrite(const char* filename) {
   File file;
 

@@ -8,7 +8,7 @@ static long _count = 0;
 
 static const char* filename = "/test.txt";
 
-void Demos::demoSDCardInit() {
+void Demos::demoDataFiles() {
   // Test reading pre-uploaded files
   Serial.println("\n-- Read LFS/SD strings file: --");
   TStrings* lfsStrings = DataFiles::loadStrings("/lfs-test.txt");
@@ -38,9 +38,4 @@ void Demos::demoSDCardInit() {
   Serial.println("\n-- Re-read just written data: --");
   T2DStrings* readData = DataFiles::loadDataFile(filename);
   DataFiles::printDataToSerial(readData);
-}
-
-int Demos::demoSDCardTick(TFT_eSPI& tft, int yp) {
-  // Return line height (0 = nothing has printed)
-  return 0;
 }

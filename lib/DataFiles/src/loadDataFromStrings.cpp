@@ -1,7 +1,7 @@
 #include "DataFiles.hpp"
 
 T2DStrings* DataFiles::loadDataFromStrings(const TStrings* strings,
-                                    const int expectedItemsCount) {
+                                           const int expectedItemsCount) {
   // Initialize an empty 2D vector to hold the result
   // T2DStrings result2D;
   auto* result2D = new T2DStrings();
@@ -21,7 +21,8 @@ T2DStrings* DataFiles::loadDataFromStrings(const TStrings* strings,
       continue;
     }
 
-    std::vector<String> currentLineWords = DataFiles::_parseSingleDataString(line, expectedItemsCount);
+    std::vector<String> currentLineWords =
+        DataFiles::_parseSingleDataString(line, expectedItemsCount);
 
     // Add the parsed line row to our 2D array if it contains elements
     if (!currentLineWords.empty()) {

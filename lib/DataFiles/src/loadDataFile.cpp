@@ -26,7 +26,8 @@ T2DStrings* DataFiles::loadDataFile(const char* filename,
       continue;
     }
 
-    std::vector<String> currentLineWords = DataFiles::_parseSingleDataString(line, expectedItemsCount);
+    std::vector<String> currentLineWords =
+        DataFiles::_parseSingleDataString(line, expectedItemsCount);
 
     // Add the parsed line row to our 2D array if it contains elements
     if (!currentLineWords.empty()) {

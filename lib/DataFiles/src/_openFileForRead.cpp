@@ -1,6 +1,7 @@
 #include "DataFiles.hpp"
 
-// Open the file in read mode (trying to open on an SD Card first, then on LittleFS)
+// Open the file in read mode (trying to open on an SD Card first, then on
+// LittleFS)
 File DataFiles::_openFileForRead(const char* filename) {
   File file;
 

@@ -16,7 +16,7 @@ TStrings* DataFiles::loadStrings(const char* filename) {
   while (file.available()) {
     String line = file.readStringUntil('\n');
 
-    line.trim(); // Remove trailing '\r' and whitespace
+    line.trim();  // Remove trailing '\r' and whitespace
 
     // Add the parsed line
     result2D->push_back(line);

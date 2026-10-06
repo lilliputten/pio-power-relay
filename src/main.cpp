@@ -1,4 +1,4 @@
-// #define USE_WIFI_UTILS 1
+#define USE_WIFI_UTILS 1
 // #define USE_RELAY 1
 
 #include "DataFiles.hpp"
@@ -32,22 +32,22 @@ void setup() {
 #ifdef WIFI_CONFIGS
   // WiFi Configs iteration demo (array expected)
   Serial.println("WiFi configs:");
-  const char* lines[] = WIFI_CONFIGS;
-  const int lineCount = sizeof(lines) / sizeof(lines[0]);
+  const TStrings lines = WIFI_CONFIGS;
+  const int lineCount = lines.size();  // sizeof(lines) / sizeof(lines[0]);
   for (int i = 0; i < lineCount; i++) {
     Serial.println(lines[i]);
   }
 #endif
 
-#ifdef USE_WIFI_UTILS
-  wiFiUtils.initWiFi();
-  wiFiUtils.scanWifi();
-#endif
-
   DataFiles::initDataFiles();
 
+#ifdef USE_WIFI_UTILS
+  wiFiUtils.initWiFi();
+  // wiFiUtils.scanWifi();
+#endif
+
   demos.demoTempSensorInit();
-  demos.demoSDCardInit();
+  // demos.demoDataFiles();
 #ifdef USE_RELAY
   demos.demoRelayInit();
 #endif
@@ -66,9 +66,8 @@ void loop() {
 #ifdef USE_RELAY
   yp += demos.demoRelayTick(tftUtils.tft, yp);
 #endif
-  // yp += demos.demoSDCardTick(tftUtils.tft, yp);
 
-  // // demos.demoPrint(tftUtils.tft);
+  // demos.demoPrint(tftUtils.tft);
   // demos.demoFont(tftUtils.tft);
 
   // Next loop interation
