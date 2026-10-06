@@ -8,43 +8,19 @@ static long _count = 0;
 
 static const char* filename = "/test.txt";
 
-/* [>* Read a text file from SD and display it on Serial <]
- * void readAndDisplayFile(const char* filename) {
- *   if (!SD.exists(filename)) {
- *     Serial.printf("File %s does not exist\n", filename);
- *     return;
- *   }
- *
- *   File file = SD.open(filename, FILE_READ);
- *   if (!file) {
- *     Serial.printf("Failed to open file for reading (%s)\n", filename);
- *     return;
- *   }
- *
- *   Serial.printf("Reading %s (%u bytes)...\n", filename, file.size());
- *
- *   // ---- Read line by line ----
- *   int lineCount = 0;
- *   while (file.available()) {
- *     String line = file.readStringUntil('\n');
- *
- *     // Trim trailing \r (Windows line endings)
- *     if (line.endsWith("\r")) line.remove(line.length() - 1);
- *
- *     // Print to Serial
- *     Serial.printf("<%s>\n", line.c_str());
- *
- *     lineCount++;
- *   }
- *
- *   file.close();
- *   Serial.printf("Done. %d lines read\n", lineCount);
- * }
- */
-
 void Demos::demoSDCardInit() {
+  // Test reading pre-uploaded files
+  Serial.println("\n-- Read LFS/SD strings file: --");
+  TStrings* lfsStrings = DataFiles::loadStrings("/lfs-test.txt");
+  DataFiles::printStringsToSerial(lfsStrings);
+
+  Serial.println("\n-- Read LFS/SD data file: --");
+  T2DStrings* lfsData = DataFiles::loadDataFile("/test.txt");
+  DataFiles::printDataToSerial(lfsData);
+
+  // Test writing and re-reading
   long rand = random(10, 99);
-  const T2DStringsData testData = {
+  const T2DStrings testData = {
       {"Device Setup " + String(rand), "ESP32 Node 1", "Status OK"},
       {"Sensor Reading", "Temperature 24.5 C", "Humidity 60%"},
       {"System Log", "WiFi Connected", "RSSI -45dBm"},
@@ -59,8 +35,8 @@ void Demos::demoSDCardInit() {
     Serial.printf("-- Failed to open file for writing (%s) --\n", filename);
   }
 
-  T2DStringsData* readData = DataFiles::loadDataFile(filename);
-  Serial.println("\n-- Re-read data: --");
+  Serial.println("\n-- Re-read just written data: --");
+  T2DStrings* readData = DataFiles::loadDataFile(filename);
   DataFiles::printDataToSerial(readData);
 }
 

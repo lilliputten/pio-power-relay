@@ -1,11 +1,14 @@
 #include "DataFiles.hpp"
 
-// Function to write 2D string array to SD Card with space encoding
-bool DataFiles::writeDataFile(const char* filename, const T2DStringsData* dataTable, const int expectedItemsCount) {
-  // Open the file in write mode (creates a new file or overwrites an existing one)
-  File file = SD.open(filename, FILE_WRITE);
-  if (!file) {
-    Serial.printf("Failed to open file for writing: %s\n", filename);
+// Function to write 2D string array with space encoding
+bool DataFiles::writeDataFile(const char* filename, const T2DStrings* dataTable,
+                              const int expectedItemsCount) {
+  // Open the file in write mode (creates a new file or overwrites an existing
+  // one)
+  File file = DataFiles::_openFileForWrite(filename);
+
+  if (!file || file.isDirectory()) {
+    Serial.printf("Failed to open %s for write\n", filename);
     return false;
   }
 
@@ -15,7 +18,8 @@ bool DataFiles::writeDataFile(const char* filename, const T2DStringsData* dataTa
 
     // Iterate through each word in the current row
     int dataItemsCount = (*dataTable)[i].size();
-    int loopItemsCount = expectedItemsCount ? expectedItemsCount : dataItemsCount;
+    int loopItemsCount =
+        expectedItemsCount ? expectedItemsCount : dataItemsCount;
     for (size_t j = 0; j < loopItemsCount; j++) {
       bool isLast = j == loopItemsCount - 1;
       bool hasData = j < dataItemsCount;
@@ -42,4 +46,3 @@ bool DataFiles::writeDataFile(const char* filename, const T2DStringsData* dataTa
   file.close();
   return true;
 }
-

@@ -1,22 +1,17 @@
 #include "DataFiles.hpp"
 
-T2DStrings* DataFiles::loadDataFile(const char* filename,
+T2DStrings* DataFiles::loadDataFromStrings(const TStrings* strings,
                                     const int expectedItemsCount) {
   // Initialize an empty 2D vector to hold the result
   // T2DStrings result2D;
   auto* result2D = new T2DStrings();
 
-  File file = DataFiles::_openFileForRead(filename);
-
-  if (!file || file.isDirectory()) {
-    Serial.printf("Failed to open %s for read\n", filename);
+  if (!strings) {
     return nullptr;
   }
 
-  // Read the file line by line
-  while (file.available()) {
-    String line = file.readStringUntil('\n');
-
+  // Read the strings array line by line
+  for (String line : *strings) {
     line.trim();  // Remove trailing '\r' and whitespace
     // // Trim trailing \r (Windows line endings)
     // if (line.endsWith("\r")) line.remove(line.length() - 1);
@@ -34,6 +29,5 @@ T2DStrings* DataFiles::loadDataFile(const char* filename,
     }
   }
 
-  file.close();
   return result2D;
 }

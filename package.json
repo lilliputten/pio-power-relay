@@ -4,16 +4,18 @@
   "version": "0.0.1",
   "timetag": "261003-2318",
   "timestamp": "2026.10.03 23:18:32 +0300",
-  "changed": "2026.10.03, 20:08",
+  "changed": "2026.10.06, 19:51",
   "main": "src/main.cpp",
   "author": "lilliputten@gmail.com",
   "license": "MIT",
+  "$schema": "https://json.schemastore.org/package.json",
   "repository": {
     "type": "git",
     "url": "git@github.com:lilliputten/pio-power-relay.git"
   },
   "bugs": {
-    "url": "git@github.com:lilliputten/pio-power-relay.git/issues"
+    "url": "https://github.com/lilliputten/pio-power-relay/issues",
+    "email": "lilliputten@gmail.com"
   },
   "dependencies": {
     "npm-run-all": "^4.1.5"
@@ -26,6 +28,7 @@
     "monitor": "echo --Run serial monitor for the connected device-- && pio device monitor",
     "format": "echo --Format c files in the project-- && git ls-files | grep -E '\\\\.[ch]p*$' | xargs clang-format -i --verbose",
     "check": "echo --Run source code static analysisn-- && pio check -e esp32dev",
+    "uploadfs": "echo --Re-upload LittleFS files from data folder-- && pio run --target buildfs && pio run --target uploadfs",
     "ide-config": "echo --Initialize vim environment-- && pio init --ide vim",
     "test": "echo \"Error: no test specified\" && exit 1"
   }

@@ -1,7 +1,0 @@
-#include "DataFiles.hpp"
-
-void DataFiles::testDataFiles(const int value) {
-  // Constructor
-  Serial.printf("-- DataFiles test: %d --\n", value);
-}
-

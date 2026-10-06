@@ -1,6 +1,6 @@
 #include "DataFiles.hpp"
 
-void DataFiles::printDataToSerial(const T2DStringsData* dataTable) {
+void DataFiles::printDataToSerial(const T2DStrings* dataTable) {
   int rowNo = 0;
   for (const auto& row : *dataTable) {
     Serial.print(String(rowNo++) + ": ");
