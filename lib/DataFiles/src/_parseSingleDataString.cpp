@@ -1,8 +1,8 @@
 #include "DataFiles.hpp"
 
-const std::vector<String> DataFiles::_parseSingleDataString(
-    const String line, const int expectedItemsCount) {
-  std::vector<String> currentLineWords;
+const TStrings DataFiles::_parseSingleDataString(const String line,
+                                                 const int expectedItemsCount) {
+  TStrings currentLineWords;
   int startIndex = 0;
   int spaceIndex = line.indexOf(' ');
   // int itemsCount = 0;

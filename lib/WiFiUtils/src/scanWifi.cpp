@@ -1,23 +1,28 @@
 #include "WiFiUtils.hpp"
 
-void WiFiUtils::scanWifi() {
-  Serial.println("WiFi Scan started");
+TStrings* WiFiUtils::scanWifi(TFT_eSPI* tft) {
+  if (tft) tft->println("Scanning WiFi networks...");
+
+  Serial.println("-- WiFi Scan started --");
+
+  // Gather found ssids
+  // TStrings ssids = {};
+  TStrings* ssids = new TStrings();
 
   // WiFi.scanNetworks will return the number of networks found.
   int n = WiFi.scanNetworks();
-  Serial.println("WiFi Scan done");
   if (n == 0) {
     Serial.println("no networks found");
   } else {
-    Serial.print(n);
-    Serial.println(" networks found");
-    Serial.println(
-        "Nr | SSID                             | RSSI | CH | Encryption");
+    Serial.printf("%d networks found\n", n);
+    Serial.printf("Nr | %-32.32s | RSSI | CH | Encryption\n", "SSID");
     for (int i = 0; i < n; ++i) {
       // Print SSID and RSSI for each network found
       Serial.printf("%2d", i + 1);
       Serial.print(" | ");
-      Serial.printf("%-32.32s", WiFi.SSID(i).c_str());
+      const String ssid = WiFi.SSID(i);
+      ssids->push_back(ssid);
+      Serial.printf("%-32.32s", ssid.c_str());
       Serial.print(" | ");
       Serial.printf("%4ld", (long)WiFi.RSSI(i));
       Serial.print(" | ");
@@ -58,8 +63,11 @@ void WiFiUtils::scanWifi() {
       delay(10);
     }
   }
-  Serial.println("");
 
   // Delete the scan result to free memory for code below.
   WiFi.scanDelete();
+
+  Serial.println("-- WiFi Scan done --");
+
+  return ssids;
 }

@@ -9,9 +9,6 @@ Demos demos;
 TFTUtils tftUtils;
 
 #ifdef USE_WIFI_UTILS
-// #ifndef WIFI_CONFIGS
-//   #error "Build halted: WIFI_CONFIGS is missing!"
-// #endif
 #include "WiFiUtils.hpp"
 WiFiUtils wiFiUtils;
 #endif
@@ -25,32 +22,25 @@ void setup() {
   delay(100);
   Serial.printf("\nProject: %s @ %s\n", PROJECT_NAME, PROJECT_INFO);
 
-  tftUtils.initTFT();
-
   Serial.printf("TICK_DELAY: %d\n", TICK_DELAY);
 
-#ifdef WIFI_CONFIGS
-  // WiFi Configs iteration demo (array expected)
-  Serial.println("WiFi configs:");
-  const TStrings lines = WIFI_CONFIGS;
-  const int lineCount = lines.size();  // sizeof(lines) / sizeof(lines[0]);
-  for (int i = 0; i < lineCount; i++) {
-    Serial.println(lines[i]);
-  }
-#endif
-
   DataFiles::initDataFiles();
+  tftUtils.initTFT();
+
+  // TFT_eSPI *tftRef = &tftUtils.tft;
 
 #ifdef USE_WIFI_UTILS
-  wiFiUtils.initWiFi();
-  // wiFiUtils.scanWifi();
+  wiFiUtils.initWiFi(&tftUtils.tft);
+#endif
+
+#ifdef USE_RELAY
+  demos.demoRelayInit();
 #endif
 
   demos.demoTempSensorInit();
   // demos.demoDataFiles();
-#ifdef USE_RELAY
-  demos.demoRelayInit();
-#endif
+
+  tftUtils.tft.fillScreen(TFT_BLACK);
 
   Serial.println("-- Setup done --");
 }

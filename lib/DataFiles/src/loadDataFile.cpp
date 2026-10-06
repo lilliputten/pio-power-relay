@@ -3,8 +3,7 @@
 T2DStrings* DataFiles::loadDataFile(const char* filename,
                                     const int expectedItemsCount) {
   // Initialize an empty 2D vector to hold the result
-  // T2DStrings result2D;
-  auto* result2D = new T2DStrings();
+  T2DStrings* result2D = new T2DStrings();
 
   File file = DataFiles::_openFileForRead(filename);
 
@@ -36,5 +35,6 @@ T2DStrings* DataFiles::loadDataFile(const char* filename,
   }
 
   file.close();
+
   return result2D;
 }

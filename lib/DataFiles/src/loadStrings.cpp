@@ -2,8 +2,7 @@
 
 TStrings* DataFiles::loadStrings(const char* filename) {
   // Initialize an empty array to hold the result
-  // TStrings result2D;
-  auto* result2D = new TStrings();
+  TStrings* result2D = new TStrings();
 
   File file = DataFiles::_openFileForRead(filename);
 
@@ -23,5 +22,6 @@ TStrings* DataFiles::loadStrings(const char* filename) {
   }
 
   file.close();
+
   return result2D;
 }

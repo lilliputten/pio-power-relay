@@ -22,7 +22,7 @@
 class DataFiles {
  private:
   // Helpers
-  static const std::vector<String> _parseSingleDataString(
+  static const TStrings _parseSingleDataString(
       const String line, const int expectedItemsCount = 0);
   static bool _sdFileExists(const char* filename);
   static File _openFileForRead(const char* filename);

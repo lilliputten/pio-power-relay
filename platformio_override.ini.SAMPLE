@@ -1,5 +1,5 @@
 ; vim: ft=dosini
-; @changed 2026.10.05, 22:27
+; @changed 2026.10.06, 23:41
 ;
 ; Overrides custom build settings for PlatformIO.
 ; Update required existed, remove unused, or add new parameters.
@@ -7,10 +7,13 @@
 [env:esp32dev]
 extends = core_settings
 ; Redefine TICK_DELAY
-; build_unflags =
-;   -D TICK_DELAY=5000
+build_unflags =
+  -D TICK_DELAY=5000
 build_flags =
   ${core_settings.build_flags}
-  ; -D TICK_DELAY=1000 ; Delay between main loop ticks (optional, undefined or 0 = single run)
-  ; '-D WIFI_CONFIGS={"SSID-1 Login Password", "SSID-2 Login Password"}' ; Default WiFi access points list (optional, quoted strings array)
-  ; -D DEBUG=1
+  -D TICK_DELAY=0 ; Delay between main loop ticks (optional, undefined or 0 = signle run)
+  '-D WIFI_CONFIGS={"SSID Password"}' ; Default WiFi access points list (optional, quoted strings array). May be overrided by WIFI_CONFIGS_FILE.
+  '-D WIFI_AP_SSID="espd"' ; Local wifi access point ssid
+  '-D WIFI_AP_PWD="password"' ; Local wifi access point password
+  -D DEBUG=1 ; Debug mode
+

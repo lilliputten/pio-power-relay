@@ -2,6 +2,10 @@
 
 // Function to write string array
 bool DataFiles::writeStrings(const char* filename, const TStrings* strings) {
+  if (!strings) {
+    return false;
+  }
+
   // Open the file in write mode (creates a new file or overwrites an existing
   // one)
   File file = DataFiles::_openFileForWrite(filename);
@@ -18,5 +22,6 @@ bool DataFiles::writeStrings(const char* filename, const TStrings* strings) {
   }
 
   file.close();
+
   return true;
 }

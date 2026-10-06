@@ -3,6 +3,10 @@
 // Function to write 2D string array with space encoding
 bool DataFiles::writeDataFile(const char* filename, const T2DStrings* dataTable,
                               const int expectedItemsCount) {
+  if (!dataTable) {
+    return false;
+  }
+
   // Open the file in write mode (creates a new file or overwrites an existing
   // one)
   File file = DataFiles::_openFileForWrite(filename);
@@ -44,5 +48,6 @@ bool DataFiles::writeDataFile(const char* filename, const T2DStrings* dataTable,
   }
 
   file.close();
+
   return true;
 }
