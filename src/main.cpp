@@ -4,13 +4,15 @@
 #include "DataFiles.hpp"
 #include "Demos.hpp"
 #include "TFTUtils.hpp"
+#include "WWWServer.hpp"
 
 Demos demos;
 TFTUtils tftUtils;
+WWWServer wwwServer(&tftUtils);
 
 #ifdef USE_WIFI_UTILS
 #include "WiFiUtils.hpp"
-WiFiUtils wiFiUtils;
+WiFiUtils wiFiUtils(&tftUtils);
 #endif
 
 // Iteration count
@@ -34,7 +36,7 @@ void setup() {
   tftUtils.initTFT();
 
 #ifdef USE_WIFI_UTILS
-  wiFiUtils.initWiFi(&tftUtils);
+  wiFiUtils.initWiFi();
 #endif
 
 #ifdef USE_RELAY
@@ -43,6 +45,8 @@ void setup() {
 
   demos.demoTempSensorInit();
   // demos.demoDataFiles();
+
+  wwwServer.initServer();
 
   const char *done = "-- Setup done --";
   Serial.println(done);

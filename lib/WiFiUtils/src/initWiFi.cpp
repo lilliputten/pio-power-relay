@@ -1,10 +1,8 @@
 #include "WiFiUtils.hpp"
 
-void WiFiUtils::initWiFi(TFTUtils* tftUtils) {
-  if (tftUtils) {
-    this->tft = &tftUtils->getTFT();
-  }
-  if (this->tft) this->tft->println("Initializing WiFi...");
+void WiFiUtils::initWiFi() {
+  auto tft = this->tft;
+  if (tft) tft->println("Initializing WiFi...");
 
   Serial.println("-- WiFi Initialization started --");
 

@@ -28,8 +28,8 @@ class TFTUtils {
 
   TFTUtils() {
     // Constructor
-    Serial.println("TFTUtils constructor");
-    initTFT();
+    // Serial.println("TFTUtils constructor");
+    this->initTFT();
   }
 };
 

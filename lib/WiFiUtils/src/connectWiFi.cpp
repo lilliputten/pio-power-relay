@@ -5,7 +5,7 @@
 
 static const unsigned long wifiTimeout = 10000;  // WiFi connection timeout
 
-static bool _findNetwork(const TStrings* ssids, const String& ssid) {
+static bool __findNetwork(const TStrings* ssids, const String& ssid) {
   // std::find searches sequentially from start to finish
   auto it = std::find(ssids->begin(), ssids->end(), ssid);
 
@@ -21,8 +21,8 @@ static bool _findNetwork(const TStrings* ssids, const String& ssid) {
   return false;
 }
 
-static bool _tryToConnect(const String& ssid, const String& pwd,
-                          TFT_eSPI* tft) {
+static bool __tryToConnect(const String& ssid, const String& pwd,
+                           TFT_eSPI* tft) {
   unsigned long startAttemptTime = millis();
 
   Serial.printf("Started connection to network %s", ssid);
@@ -40,12 +40,13 @@ static bool _tryToConnect(const String& ssid, const String& pwd,
     Serial.println("\nError: Connection failed!");
     Serial.print("Final status code: ");
     Serial.println(WiFi.status());
+    WiFi.disconnect();
     return false;
   }
 
-  Serial.println("\nConnected successfully!");
+  Serial.printf("\nConnected to %s", ssid);
   auto localIP = WiFi.localIP().toString();
-  Serial.printf("WiFi Network IP address: %s\n", localIP);
+  Serial.printf("IP Address: %s\n", localIP);
   if (tft) tft->printf("SSID: %s\n", ssid);
   tft->printf("IP: %s\n", localIP);
 
@@ -75,12 +76,12 @@ bool WiFiUtils::connectWiFi(const T2DStrings* configs, const TStrings* ssids) {
       const TStrings item = (*configs)[i];
       const String ssid = item[0];
       const String pwd = item[1];
-      const bool isFound = _findNetwork(ssids, ssid);
+      const bool isFound = __findNetwork(ssids, ssid);
       // Serial.printf("%s %s: %s\n", isFound ? "Found" : "Not found", ssid,
       // pwd);
       if (isFound) {
         // Try to connect to the network
-        if (_tryToConnect(ssid, pwd, tft)) {
+        if (__tryToConnect(ssid, pwd, tft)) {
           connectedToNetwork = true;
           break;
         }
