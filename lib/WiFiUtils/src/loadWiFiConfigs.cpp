@@ -3,11 +3,12 @@
 // WiFi config row items (SSID, Password)
 const int expectedItemsCount = 2;
 
-T2DStrings* WiFiUtils::loadWiFiConfigs(TFT_eSPI* tft) {
+T2DStrings* WiFiUtils::loadWiFiConfigs() {
 #ifndef WIFI_CONFIGS_FILE
 #error "WIFI_CONFIGS_FILE is undefined"
 #endif
 
+  auto tft = this->tft;
   if (tft) tft->println("Loading WiFi configs...");
 
   Serial.println("-- Loading WiFi configs started --");
@@ -29,6 +30,13 @@ T2DStrings* WiFiUtils::loadWiFiConfigs(TFT_eSPI* tft) {
     }
 
     DataFiles::printDataToSerial(data);
+
+    if (tft) {
+      int rowNo = 0;
+      for (const auto& row : *data) {
+        tft->printf("%2d %s\n", ++rowNo, row[0]);
+      }
+    }
 
   } catch (const std::exception& e) {
     Serial.printf("Exception: %s\n", e.what());

@@ -1,6 +1,7 @@
 #include "WiFiUtils.hpp"
 
-TStrings* WiFiUtils::scanWifi(TFT_eSPI* tft) {
+TStrings* WiFiUtils::scanWifi() {
+  auto tft = this->tft;
   if (tft) tft->println("Scanning WiFi networks...");
 
   Serial.println("-- WiFi Scan started --");
@@ -16,13 +17,16 @@ TStrings* WiFiUtils::scanWifi(TFT_eSPI* tft) {
   } else {
     Serial.printf("%d networks found\n", n);
     Serial.printf("Nr | %-32.32s | RSSI | CH | Encryption\n", "SSID");
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < n; i++) {
       // Print SSID and RSSI for each network found
-      Serial.printf("%2d", i + 1);
+      const int n = i + 1;
+      Serial.printf("%2d", n);
       Serial.print(" | ");
       const String ssid = WiFi.SSID(i);
+      const char* ssidStr = ssid.c_str();
+      if (tft) tft->printf("%2d %s\n", n, ssidStr);
       ssids->push_back(ssid);
-      Serial.printf("%-32.32s", ssid.c_str());
+      Serial.printf("%-32.32s", ssidStr);
       Serial.print(" | ");
       Serial.printf("%4ld", (long)WiFi.RSSI(i));
       Serial.print(" | ");

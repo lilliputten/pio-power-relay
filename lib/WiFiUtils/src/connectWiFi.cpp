@@ -21,7 +21,8 @@ static bool _findNetwork(const TStrings* ssids, const String& ssid) {
   return false;
 }
 
-static bool _tryToConnect(const String& ssid, const String& pwd) {
+static bool _tryToConnect(const String& ssid, const String& pwd,
+                          TFT_eSPI* tft) {
   unsigned long startAttemptTime = millis();
 
   Serial.printf("Started connection to network %s", ssid);
@@ -43,15 +44,17 @@ static bool _tryToConnect(const String& ssid, const String& pwd) {
   }
 
   Serial.println("\nConnected successfully!");
-  const IPAddress localIP = WiFi.localIP();
-  Serial.printf("WiFi Network IP address: %s\n", localIP.toString().c_str());
+  auto localIP = WiFi.localIP().toString();
+  Serial.printf("WiFi Network IP address: %s\n", localIP);
+  if (tft) tft->printf("SSID: %s\n", ssid);
+  tft->printf("IP: %s\n", localIP);
 
   return true;
 }
 
-bool WiFiUtils::connectWiFi(const T2DStrings* configs, const TStrings* ssids,
-                            TFT_eSPI* tft) {
-  if (tft) tft->println("Connecting to WiFi network...");
+bool WiFiUtils::connectWiFi(const T2DStrings* configs, const TStrings* ssids) {
+  auto tft = this->tft;
+  if (tft) tft->println("Connecting to WiFi...");
 
   Serial.println("-- WiFi Connection started --");
   if (!configs) {
@@ -77,7 +80,7 @@ bool WiFiUtils::connectWiFi(const T2DStrings* configs, const TStrings* ssids,
       // pwd);
       if (isFound) {
         // Try to connect to the network
-        if (_tryToConnect(ssid, pwd)) {
+        if (_tryToConnect(ssid, pwd, tft)) {
           connectedToNetwork = true;
           break;
         }

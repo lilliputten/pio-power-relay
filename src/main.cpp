@@ -19,6 +19,12 @@ static long _count = 0;
 void setup() {
   Serial.begin(115200);
 
+  TFT_eSPI tft = tftUtils.getTFT();
+
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextSize(0);
+  tft.setTextPadding(10);
+
   delay(100);
   Serial.printf("\nProject: %s @ %s\n", PROJECT_NAME, PROJECT_INFO);
 
@@ -27,10 +33,8 @@ void setup() {
   DataFiles::initDataFiles();
   tftUtils.initTFT();
 
-  // TFT_eSPI *tftRef = &tftUtils.tft;
-
 #ifdef USE_WIFI_UTILS
-  wiFiUtils.initWiFi(&tftUtils.tft);
+  wiFiUtils.initWiFi(&tftUtils);
 #endif
 
 #ifdef USE_RELAY
@@ -40,9 +44,15 @@ void setup() {
   demos.demoTempSensorInit();
   // demos.demoDataFiles();
 
-  tftUtils.tft.fillScreen(TFT_BLACK);
+  const char *done = "-- Setup done --";
+  Serial.println(done);
+  tft.print(done);
+  tft.println("                                             ");
 
-  Serial.println("-- Setup done --");
+  delay(30000);
+
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextPadding(10);
 }
 
 void loop() {

@@ -1,8 +1,8 @@
 #include "WiFiUtils.hpp"
 
-bool WiFiUtils::startAccessPoint(const String& ssid, const String& pwd,
-                                 TFT_eSPI* tft) {
-  if (tft) tft->println("Starting WiFi access point...");
+bool WiFiUtils::startAccessPoint(const String& ssid, const String& pwd) {
+  auto tft = this->tft;
+  if (tft) tft->println("Starting WiFi AP...");
 
   Serial.println("-- WiFi AP initialization started --");
 
@@ -13,10 +13,21 @@ bool WiFiUtils::startAccessPoint(const String& ssid, const String& pwd,
   }
 
   // Serial.println("Access Point launched successfully");
-  const IPAddress accessPointIP = WiFi.softAPIP();
-  Serial.printf("WiFi AP IP Address: %s\n", accessPointIP.toString().c_str());
-  Serial.printf("WiFi AP SSID: %s\n", ssid);
-  Serial.printf("WiFi AP Password: %s\n", pwd);
+  auto accessPointIP = WiFi.softAPIP().toString();
+
+  const char* addrTemplate = "AP IP: %s\n";
+  const char* ssidTemplate = "AP SSID: %s\n";
+  const char* pwdTemplate = "AP PWD: %s\n";
+
+  Serial.printf(addrTemplate, accessPointIP);
+  Serial.printf(ssidTemplate, ssid);
+  Serial.printf(pwdTemplate, pwd);
+
+  if (tft) {
+    tft->printf(addrTemplate, accessPointIP);
+    tft->printf(ssidTemplate, ssid);
+    tft->printf(pwdTemplate, pwd);
+  }
 
   Serial.println("-- WiFi AP initialization finished --");
 

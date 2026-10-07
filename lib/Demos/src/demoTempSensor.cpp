@@ -47,10 +47,11 @@ int Demos::demoTempSensorShow(TFT_eSPI &tft, int yp) {
   Serial.print("Random: ");
   Serial.println(rand);
 
-  tft.printf("Loop: %d / %d  \n", _count, rand);
+  tft.printf("Loop: %d (%d)  \n", _count, rand);
   // Place extra spaces to cleanup the previous output text
 
   tft.setCursor(xp, yp2, font2);
+  tft.setTextColor(TFT_MAGENTA, TFT_BLACK);
 
   tft.printf("%.1f`C  \n", temperatureC);
   // Place extra spaces to cleanup the previous output text

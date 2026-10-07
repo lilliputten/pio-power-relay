@@ -1,23 +1,26 @@
 #include "WiFiUtils.hpp"
 
-void WiFiUtils::initWiFi(TFT_eSPI* tft) {
-  if (tft) tft->println("Initializing WiFi...");
+void WiFiUtils::initWiFi(TFTUtils* tftUtils) {
+  if (tftUtils) {
+    this->tft = &tftUtils->getTFT();
+  }
+  if (this->tft) this->tft->println("Initializing WiFi...");
 
   Serial.println("-- WiFi Initialization started --");
 
   WiFi.mode(WIFI_AP_STA);
   WiFi.disconnect();
 
-  const T2DStrings* configs = this->loadWiFiConfigs(tft);
-  const TStrings* ssids = this->scanWifi(tft);
+  const T2DStrings* configs = this->loadWiFiConfigs();
+  const TStrings* ssids = this->scanWifi();
 
-  this->connectWiFi(configs, ssids, tft);
+  this->connectWiFi(configs, ssids);
 
 #ifdef WIFI_AP_SSID
 #ifndef WIFI_AP_PWD
 #error "WIFI_AP_PWD is undefined (required for WIFI_AP_SSID)"
 #else
-  this->startAccessPoint(WIFI_AP_SSID, WIFI_AP_PWD, tft);
+  this->startAccessPoint(WIFI_AP_SSID, WIFI_AP_PWD);
 #endif
 #endif
 
