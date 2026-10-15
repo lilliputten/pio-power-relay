@@ -11,11 +11,13 @@ static const char* filename = "/test.txt";
 void Demos::demoDataFiles() {
   // Test reading pre-uploaded files
   Serial.println("\n-- Read LFS/SD strings file: --");
-  TStrings* lfsStrings = DataFiles::loadStrings("/lfs-test.txt");
+  TStrings lfsStrings;
+  DataFiles::loadStrings("/lfs-test.txt", lfsStrings);
   DataFiles::printStringsToSerial(lfsStrings);
 
   Serial.println("\n-- Read LFS/SD data file: --");
-  T2DStrings* lfsData = DataFiles::loadDataFile("/test.txt");
+  T2DStrings lfsData;
+  DataFiles::loadDataFile("/test.txt", lfsData);
   DataFiles::printDataToSerial(lfsData);
 
   // Test writing and re-reading
@@ -27,15 +29,16 @@ void Demos::demoDataFiles() {
       {"Command", "Reboot Device", "Delay 500ms"}};
 
   Serial.println("\n-- Expected file structure on SD card: --");
-  DataFiles::printDataToSerial(&testData);
+  DataFiles::printDataToSerial(testData);
 
-  if (DataFiles::writeDataFile(filename, &testData)) {
+  if (DataFiles::writeDataFile(filename, testData)) {
     Serial.printf("-- Data written (with new random data: %d) --\n", rand);
   } else {
     Serial.printf("-- Failed to open file for writing (%s) --\n", filename);
   }
 
   Serial.println("\n-- Re-read just written data: --");
-  T2DStrings* readData = DataFiles::loadDataFile(filename);
+  T2DStrings readData;
+  DataFiles::loadDataFile(filename, readData);
   DataFiles::printDataToSerial(readData);
 }

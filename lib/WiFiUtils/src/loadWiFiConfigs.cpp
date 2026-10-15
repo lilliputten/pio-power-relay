@@ -3,7 +3,7 @@
 // WiFi config row items (SSID, Password)
 const int expectedItemsCount = 2;
 
-T2DStrings* WiFiUtils::loadWiFiConfigs() {
+T2DStrings WiFiUtils::loadWiFiConfigs() {
 #ifndef WIFI_CONFIGS_FILE
 #error "WIFI_CONFIGS_FILE is undefined"
 #endif
@@ -13,11 +13,13 @@ T2DStrings* WiFiUtils::loadWiFiConfigs() {
 
   Serial.println("-- Loading WiFi configs started --");
 
-  T2DStrings* data =
-      DataFiles::loadDataFile(WIFI_CONFIGS_FILE, expectedItemsCount);
+  T2DStrings data;
+
+  bool success =
+      DataFiles::loadDataFile(WIFI_CONFIGS_FILE, data, expectedItemsCount);
 
   try {
-    if (data) {
+    if (success) {
       Serial.printf("Found wifi configs file (%s)\n", WIFI_CONFIGS_FILE);
     } else {
       Serial.printf("No wifi configs file (%s) found\n", WIFI_CONFIGS_FILE);
@@ -25,7 +27,7 @@ T2DStrings* WiFiUtils::loadWiFiConfigs() {
       // WiFi Configs iteration demo (array expected)
       Serial.println("Using predefined configs");
       const TStrings lines = WIFI_CONFIGS;
-      data = DataFiles::loadDataFromStrings(&lines, expectedItemsCount);
+      success = DataFiles::loadDataFromStrings(lines, data, expectedItemsCount);
 #endif
     }
 
@@ -33,7 +35,7 @@ T2DStrings* WiFiUtils::loadWiFiConfigs() {
 
     if (tft) {
       int rowNo = 0;
-      for (const auto& row : *data) {
+      for (const auto& row : data) {
         tft->printf("%2d %s\n", ++rowNo, row[0]);
       }
     }

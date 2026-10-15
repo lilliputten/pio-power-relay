@@ -1,16 +1,18 @@
 #include "DataFiles.hpp"
 
-T2DStrings* DataFiles::loadDataFile(const char* filename,
-                                    const int expectedItemsCount) {
+bool DataFiles::loadDataFile(const char* filename, T2DStrings& result,
+                             const int expectedItemsCount) {
   // Initialize an empty 2D vector to hold the result
-  T2DStrings* result2D = new T2DStrings();
+  // T2DStrings result;  // = new T2DStrings();
 
   File file = DataFiles::_openFileForRead(filename);
 
   if (!file || file.isDirectory()) {
     Serial.printf("Failed to open %s for read\n", filename);
-    return nullptr;
+    return false;
   }
+
+  result.clear();
 
   // Read the file line by line
   while (file.available()) {
@@ -30,11 +32,11 @@ T2DStrings* DataFiles::loadDataFile(const char* filename,
 
     // Add the parsed line row to our 2D array if it contains elements
     if (!currentLineWords.empty()) {
-      result2D->push_back(currentLineWords);
+      result.push_back(currentLineWords);
     }
   }
 
   file.close();
 
-  return result2D;
+  return true;
 }

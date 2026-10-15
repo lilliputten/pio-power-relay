@@ -42,10 +42,7 @@ int Demos::demoTempSensorShow(TFT_eSPI &tft, int yp) {
 
   // Note different degree symbols for console and tft fonts
   Serial.printf("%.1fºC\n", temperatureC);
-  // Serial.print("Loop: ");
-  // Serial.println(_count);
-  Serial.print("Random: ");
-  Serial.println(rand);
+  // Serial.printf("Random: %d\n", rand);
 
   tft.printf("Loop: %d (%d)  \n", _count, rand);
   // Place extra spaces to cleanup the previous output text

@@ -1,8 +1,8 @@
 #include "DataFiles.hpp"
 
 // Function to write string array
-bool DataFiles::writeStrings(const char* filename, const TStrings* strings) {
-  if (!strings) {
+bool DataFiles::writeStrings(const char* filename, const TStrings& strings) {
+  if (!strings.size()) {
     return false;
   }
 
@@ -16,8 +16,8 @@ bool DataFiles::writeStrings(const char* filename, const TStrings* strings) {
   }
 
   // Iterate through each row of the strings vector
-  for (size_t i = 0; i < strings->size(); i++) {
-    String row = (*strings)[i];
+  for (size_t i = 0; i < strings.size(); i++) {
+    String row = strings[i];
     file.println(row);
   }
 

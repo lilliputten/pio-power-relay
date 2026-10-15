@@ -12,9 +12,9 @@ class WiFiUtils {
 
  public:
   void initWiFi();
-  TStrings* scanWifi();
-  T2DStrings* loadWiFiConfigs();
-  bool connectWiFi(const T2DStrings* configs, const TStrings* ssids);
+  TStrings scanWifi();
+  T2DStrings loadWiFiConfigs();
+  bool connectWiFi(const T2DStrings& configs, const TStrings& ssids);
   bool startAccessPoint(const String& ssid, const String& pwd);
 
   WiFiUtils(TFTUtils* tftUtils = nullptr) {

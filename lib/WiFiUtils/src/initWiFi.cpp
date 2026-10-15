@@ -9,8 +9,8 @@ void WiFiUtils::initWiFi() {
   WiFi.mode(WIFI_AP_STA);
   WiFi.disconnect();
 
-  const T2DStrings* configs = this->loadWiFiConfigs();
-  const TStrings* ssids = this->scanWifi();
+  const T2DStrings configs = this->loadWiFiConfigs();
+  const TStrings ssids = this->scanWifi();
 
   this->connectWiFi(configs, ssids);
 

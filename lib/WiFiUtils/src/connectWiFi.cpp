@@ -5,13 +5,13 @@
 
 static const unsigned long wifiTimeout = 10000;  // WiFi connection timeout
 
-static bool __findNetwork(const TStrings* ssids, const String& ssid) {
+static bool __findNetwork(const TStrings& ssids, const String& ssid) {
   // std::find searches sequentially from start to finish
-  auto it = std::find(ssids->begin(), ssids->end(), ssid);
+  auto it = std::find(ssids.begin(), ssids.end(), ssid);
 
-  if (it != ssids->end()) {
+  if (it != ssids.end()) {
     // Found it!
-    int index = std::distance(ssids->begin(), it);
+    int index = std::distance(ssids.begin(), it);
     // Serial.printf("Found match '%s' at index %d\n", it->c_str(), index);
     return true;
   }
@@ -53,27 +53,27 @@ static bool __tryToConnect(const String& ssid, const String& pwd,
   return true;
 }
 
-bool WiFiUtils::connectWiFi(const T2DStrings* configs, const TStrings* ssids) {
+bool WiFiUtils::connectWiFi(const T2DStrings& configs, const TStrings& ssids) {
   auto tft = this->tft;
   if (tft) tft->println("Connecting to WiFi...");
 
   Serial.println("-- WiFi Connection started --");
-  if (!configs) {
+  if (!configs.size()) {
     Serial.println("-- WiFi Connection failed: no configs passed --");
     return false;
   }
-  if (!ssids) {
+  if (!ssids.size()) {
     Serial.println("-- WiFi Connection failed: no ssids passed --");
     return false;
   }
 
-  const int configsCount = configs->size();
+  const int configsCount = configs.size();
 
   bool connectedToNetwork = false;
 
   try {
     for (int i = 0; i < configsCount; i++) {
-      const TStrings item = (*configs)[i];
+      const TStrings item = configs[i];
       const String ssid = item[0];
       const String pwd = item[1];
       const bool isFound = __findNetwork(ssids, ssid);

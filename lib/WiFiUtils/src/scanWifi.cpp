@@ -1,6 +1,6 @@
 #include "WiFiUtils.hpp"
 
-TStrings* WiFiUtils::scanWifi() {
+TStrings WiFiUtils::scanWifi() {
   auto tft = this->tft;
   if (tft) tft->println("Scanning WiFi networks...");
 
@@ -8,7 +8,7 @@ TStrings* WiFiUtils::scanWifi() {
 
   // Gather found ssids
   // TStrings ssids = {};
-  TStrings* ssids = new TStrings();
+  TStrings ssids;
 
   // WiFi.scanNetworks will return the number of networks found.
   int n = WiFi.scanNetworks();
@@ -25,7 +25,7 @@ TStrings* WiFiUtils::scanWifi() {
       const String ssid = WiFi.SSID(i);
       const char* ssidStr = ssid.c_str();
       if (tft) tft->printf("%2d %s\n", n, ssidStr);
-      ssids->push_back(ssid);
+      ssids.push_back(ssid);
       Serial.printf("%-32.32s", ssidStr);
       Serial.print(" | ");
       Serial.printf("%4ld", (long)WiFi.RSSI(i));

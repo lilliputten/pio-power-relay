@@ -1,9 +1,9 @@
 #include "DataFiles.hpp"
 
 // Function to write 2D string array with space encoding
-bool DataFiles::writeDataFile(const char* filename, const T2DStrings* dataTable,
+bool DataFiles::writeDataFile(const char* filename, const T2DStrings& dataTable,
                               const int expectedItemsCount) {
-  if (!dataTable) {
+  if (!dataTable.size()) {
     return false;
   }
 
@@ -17,11 +17,11 @@ bool DataFiles::writeDataFile(const char* filename, const T2DStrings* dataTable,
   }
 
   // Iterate through each row of the 2D vector
-  for (size_t i = 0; i < dataTable->size(); i++) {
+  for (size_t i = 0; i < dataTable.size(); i++) {
     String lineBuffer = "";
 
     // Iterate through each word in the current row
-    int dataItemsCount = (*dataTable)[i].size();
+    int dataItemsCount = dataTable[i].size();
     int loopItemsCount =
         expectedItemsCount ? expectedItemsCount : dataItemsCount;
     for (size_t j = 0; j < loopItemsCount; j++) {
@@ -29,7 +29,7 @@ bool DataFiles::writeDataFile(const char* filename, const T2DStrings* dataTable,
       bool hasData = j < dataItemsCount;
 
       // Copy the word so we don't modify the original array data
-      String word = hasData ? (*dataTable)[i][j] : "";
+      String word = hasData ? dataTable[i][j] : "";
 
       // Encode inner spaces within the word to "%20"
       word.replace(" ", "%20");

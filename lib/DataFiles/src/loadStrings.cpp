@@ -1,15 +1,17 @@
 #include "DataFiles.hpp"
 
-TStrings* DataFiles::loadStrings(const char* filename) {
+bool DataFiles::loadStrings(const char* filename, TStrings& result) {
   // Initialize an empty array to hold the result
-  TStrings* result2D = new TStrings();
+  // TStrings result;
 
   File file = DataFiles::_openFileForRead(filename);
 
   if (!file || file.isDirectory()) {
     Serial.printf("Failed to open %s for read\n", filename);
-    return nullptr;
+    return false;
   }
+
+  result.clear();
 
   // Read the file line by line
   while (file.available()) {
@@ -18,10 +20,10 @@ TStrings* DataFiles::loadStrings(const char* filename) {
     line.trim();  // Remove trailing '\r' and whitespace
 
     // Add the parsed line
-    result2D->push_back(line);
+    result.push_back(line);
   }
 
   file.close();
 
-  return result2D;
+  return true;
 }

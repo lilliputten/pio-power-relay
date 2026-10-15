@@ -1,22 +1,22 @@
 #include "DataFiles.hpp"
 
-T2DStrings* DataFiles::loadDataFromStrings(const TStrings* strings,
-                                           const int expectedItemsCount) {
-  // Initialize an empty 2D vector to hold the result
-  // T2DStrings result2D;
-  T2DStrings* result2D = new T2DStrings();
+bool DataFiles::loadDataFromStrings(const TStrings& strings, T2DStrings& result,
+                                    const int expectedItemsCount) {
+  result.clear();
 
-  if (!strings) {
-    return nullptr;
+  if (!strings.size()) {
+    return false;
   }
 
+  // result.reserve(strings.size());
+
   // Read the strings array line by line
-  for (String line : *strings) {
+  for (String line : strings) {
     line.trim();  // Remove trailing '\r' and whitespace
     // // Trim trailing \r (Windows line endings)
     // if (line.endsWith("\r")) line.remove(line.length() - 1);
 
-    // Skip empty or commented (with leading '#') lines
+    // Skip empty (!) or commented (with leading '#') lines
     if (line.length() == 0 || line.startsWith("#")) {
       continue;
     }
@@ -26,9 +26,9 @@ T2DStrings* DataFiles::loadDataFromStrings(const TStrings* strings,
 
     // Add the parsed line row to our 2D array if it contains elements
     if (!currentLineWords.empty()) {
-      result2D->push_back(currentLineWords);
+      result.push_back(currentLineWords);
     }
   }
 
-  return result2D;
+  return true;
 }

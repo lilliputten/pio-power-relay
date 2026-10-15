@@ -31,16 +31,16 @@ class DataFiles {
  public:
   // Interface
   static void initDataFiles();
-  static T2DStrings* loadDataFile(const char* filename,
-                                  const int expectedItemsCount = 0);
-  static TStrings* loadStrings(const char* filename);
-  static bool writeDataFile(const char* filename, const T2DStrings* dataTable,
+  static bool loadDataFile(const char* filename, T2DStrings& result,
+                           const int expectedItemsCount = 0);
+  static bool loadStrings(const char* filename, TStrings& result);
+  static bool writeDataFile(const char* filename, const T2DStrings& dataTable,
                             const int expectedItemsCount = 0);
-  static T2DStrings* loadDataFromStrings(const TStrings* strings,
-                                         const int expectedItemsCount = 0);
-  bool writeStrings(const char* filename, const TStrings* strings);
-  static void printDataToSerial(const T2DStrings* dataTable);
-  static void printStringsToSerial(const TStrings* strings);
+  static bool loadDataFromStrings(const TStrings& strings, T2DStrings& result,
+                                  const int expectedItemsCount = 0);
+  bool writeStrings(const char* filename, const TStrings& strings);
+  static void printDataToSerial(const T2DStrings& dataTable);
+  static void printStringsToSerial(const TStrings& strings);
 };
 
 #endif
