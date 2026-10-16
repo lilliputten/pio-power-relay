@@ -12,7 +12,8 @@ bool DataFiles::writeDataFile(const char* filename, const T2DStrings& dataTable,
   File file = DataFiles::_openFileForWrite(filename);
 
   if (!file || file.isDirectory()) {
-    Serial.printf("Failed to open %s for write\n", filename);
+    Serial.printf("[DataFiles::writeDataFile] Failed to open '%s' for write\n",
+                  filename);
     return false;
   }
 

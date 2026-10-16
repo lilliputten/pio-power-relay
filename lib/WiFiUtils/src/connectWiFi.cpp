@@ -50,6 +50,8 @@ static bool __tryToConnect(const String& ssid, const String& pwd,
   if (tft) tft->printf("SSID: %s\n", ssid);
   tft->printf("IP: %s\n", localIP);
 
+  delay(2000);
+
   return true;
 }
 

@@ -74,7 +74,7 @@ class TimeUtils {
                                    const size_t maxSteps = 2) {
     const TTimePeriods periods = getSecPeriodSteps(periodSec);
     String result = "";
-    for (size_t i = 0; i < periods.size() && i < maxSteps; i++) {
+    for (size_t i = 0; i < periods.size() && (!maxSteps || i < maxSteps); i++) {
       if (i) result += " ";
       const TTimePeriod& period = periods[i];
       result += String(period.time) + period.name;

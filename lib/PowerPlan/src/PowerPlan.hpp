@@ -1,6 +1,8 @@
 #ifndef PowerPlan_DEFINED
 #define PowerPlan_DEFINED
 
+#include <ArduinoJson.h>
+
 #include <vector>
 
 #include "DataFiles.hpp"
@@ -21,8 +23,8 @@ struct PowerPlanSlot {
 #define TPowerPlanSlots std::vector<PowerPlanSlot>
 
 static const PowerPlanSlot defaultSlots[] = {
-    {10, "15 sec"},
-    {5, "Second slot"},
+    {10, "Test"},
+    {10 * 60 * 60 + 3 * 60 + 20, "Second slot"},
 };
 
 class PowerPlan {
@@ -53,6 +55,7 @@ class PowerPlan {
 
   bool writeRawData(const T2DStrings& rawData) const {
     const char* filename = this->getFileName().c_str();
+    Serial.printf("[PowerPlan:writeRawData] Writing file '%s'\n", filename);
     return DataFiles::writeDataFile(filename, rawData);
   }
 
@@ -122,7 +125,7 @@ class PowerPlan {
     }
   }
 
-  void writeSlots() const {
+  bool writeSlots() const {
     const size_t slotsCount = this->slots.size();
     T2DStrings rawData;
 
@@ -135,7 +138,7 @@ class PowerPlan {
       rawData.push_back(rawItem);
     }
 
-    this->writeRawData(rawData);
+    return this->writeRawData(rawData);
   }
 
   void updateChannelState() const {
@@ -215,6 +218,76 @@ class PowerPlan {
     }
   }
 
+  String getSlotsJson() {
+    JsonDocument doc;
+    doc["ok"] = true;
+    doc["id"] = this->id;
+    JsonArray arr = doc["slots"].to<JsonArray>();
+    for (const PowerPlanSlot& slot : slots) {
+      JsonObject obj = arr.add<JsonObject>();
+      obj["timeSec"] = slot.timeSec;
+      obj["textId"] = slot.textId;
+    }
+    String out;
+    serializeJson(doc, out);
+    return out;
+  }
+
+  String updateSlotsFromJsonArray(const JsonArray& arr) {
+    if (arr.isNull()) {
+      return "ERR_MISSING_SLOTS";
+    }
+
+    // Clear existing slots before rewriting them
+    this->slots.clear();
+
+    // TODO: Reserve expected slots amount
+    this->slots.reserve(arr.size());
+
+    Serial.printf("Reading %d slots from json\n", arr.size());
+
+    // Parse and populate the vector
+    size_t rowNo = 0;
+    for (JsonObject obj : arr) {
+      // Check if the required keys exist in the current object
+      if (!obj["timeSec"].is<TTimeSec>() || !obj["textId"].is<const char*>()) {
+        return "ERR_INVALID_SLOT_FORMAT";
+      }
+
+      PowerPlanSlot slot;
+      slot.timeSec = obj["timeSec"];
+      slot.textId = obj["textId"].as<String>();
+      Serial.printf("%d: %d (%s)\n", ++rowNo, slot.timeSec, slot.textId);
+
+      this->slots.push_back(slot);
+    }
+
+    // Store updated data
+    if (!this->writeSlots()) {
+      return "ERR_FAILED_WRITING_SLOTS_FILE";
+    };
+
+    // TODO: Update the cuurently looping data (somehow)
+
+    return "";
+  }
+
+  String updateSlotsFromJson(const String& jsonStr) {
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, jsonStr);
+
+    // Return specific parsing error code from ArduinoJson
+    if (error) {
+      Serial.printf("Error json parsing: %s\n", error.c_str());
+      return "ERR_JSON_PARSE";
+    }
+
+    // Validate the presence of the slots array
+    JsonArray arr = doc["slots"].as<JsonArray>();
+
+    return this->updateSlotsFromJsonArray(arr);
+  }
+
   void initPowerPlan() {
     auto tft = this->tft;
 
@@ -229,12 +302,19 @@ class PowerPlan {
     if (tft) tft->printf("Loaded %d slots:\n", this->slots.size());
     for (size_t i = 0; i < this->slots.size(); i++) {
       const PowerPlanSlot& slot = this->slots[i];
-      char charBuf[30];
-      snprintf(charBuf, sizeof(charBuf), "%d: %s %s\n", ++rowNo,
-               TimeUtils::getSecPeriodString(slot.timeSec),
+      char charBuf[50];
+      String timeStr = TimeUtils::getSecPeriodString(slot.timeSec, 5);
+      if (slot.timeSec >= 60) {
+        timeStr += " (" + String(slot.timeSec) + "s)";
+      }
+      snprintf(charBuf, sizeof(charBuf), "%d: %s %s", ++rowNo, timeStr.c_str(),
                slot.textId ? "(" + slot.textId + ")" : "--");
       Serial.print(charBuf);
-      if (tft) tft->print(charBuf);
+      Serial.println();
+      if (tft) {
+        tft->print(charBuf);
+        tft->println();
+      }
     }
 
     this->resetTickingLoop();

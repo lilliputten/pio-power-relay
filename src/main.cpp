@@ -1,5 +1,5 @@
-// #define USE_WIFI_UTILS 1
-// #define USE_WWW_SERVER 1
+#define USE_WIFI_UTILS 1
+#define USE_WWW_SERVER 1
 // #define USE_RELAY_DEMO 1
 
 #include "DataFiles.hpp"
@@ -36,7 +36,7 @@ void setup() {
 
   delay(100);
 
-  char projectInfoBuf[50];
+  char projectInfoBuf[80];
   snprintf(projectInfoBuf, sizeof(projectInfoBuf), "%s @ %s\n", PROJECT_NAME,
            PROJECT_INFO);
   Serial.println();
@@ -59,13 +59,15 @@ void setup() {
   demos.demoTempSensorInit();
   // demos.demoDataFiles();
 
-#ifdef USE_WWW_SERVER
-  wwwServer.initServer();
-#endif
-
   tft.println("Before power plan");
   powerPlan.initPowerPlan();
   tft.println("After power plan");
+
+#ifdef USE_WWW_SERVER
+  wwwServer.initServer();
+  wwwServer.initRoutes(&powerPlan);
+  wwwServer.startServer();
+#endif
 
   const char *done = "-- Setup done --";
   Serial.println(done);
