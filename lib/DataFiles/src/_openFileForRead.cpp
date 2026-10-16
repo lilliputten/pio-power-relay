@@ -11,7 +11,7 @@ File DataFiles::_openFileForRead(const char* filename) {
   // 1. Attempt to open directly from SD Card first
   file = SD.open(filename, FILE_READ);
   if (file) {
-    Serial.printf("Successfully opened %s from SD Card\n", filename);
+    Serial.printf("Successfully opened %s from SD Card for read\n", filename);
   }
   // 2. If SD fails, attempt to open directly from LittleFS
   else {
@@ -19,7 +19,8 @@ File DataFiles::_openFileForRead(const char* filename) {
 #ifdef USE_LFS
     file = LittleFS.open(filename, FILE_READ);
     if (file) {
-      Serial.printf("Successfully opened %s from LittleFS\n", filename);
+      Serial.printf("Successfully opened %s from LittleFS for read\n",
+                    filename);
     }
 #endif
 #ifdef USE_SD

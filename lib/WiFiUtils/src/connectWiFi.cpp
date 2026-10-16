@@ -62,10 +62,12 @@ bool WiFiUtils::connectWiFi(const T2DStrings& configs, const TStrings& ssids) {
   Serial.println("-- WiFi Connection started --");
   if (!configs.size()) {
     Serial.println("-- WiFi Connection failed: no configs passed --");
+    if (tft) tft->println("No configs");
     return false;
   }
   if (!ssids.size()) {
     Serial.println("-- WiFi Connection failed: no ssids passed --");
+    if (tft) tft->println("No ssids");
     return false;
   }
 
@@ -79,8 +81,7 @@ bool WiFiUtils::connectWiFi(const T2DStrings& configs, const TStrings& ssids) {
       const String ssid = item[0];
       const String pwd = item[1];
       const bool isFound = __findNetwork(ssids, ssid);
-      // Serial.printf("%s %s: %s\n", isFound ? "Found" : "Not found", ssid,
-      // pwd);
+      // Serial.printf("%s %s: %s\n", isFound ? "+" : "-", ssid, pwd);
       if (isFound) {
         // Try to connect to the network
         if (__tryToConnect(ssid, pwd, tft)) {

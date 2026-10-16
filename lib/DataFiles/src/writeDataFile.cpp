@@ -3,9 +3,12 @@
 // Function to write 2D string array with space encoding
 bool DataFiles::writeDataFile(const char* filename, const T2DStrings& dataTable,
                               const int expectedItemsCount) {
-  if (!dataTable.size()) {
-    return false;
-  }
+  // if (!dataTable.size()) {
+  //   return false;
+  // }
+
+  Serial.printf("[DataFiles::writeDataFile] Trying to open '%s' for write\n",
+                filename);
 
   // Open the file in write mode (creates a new file or overwrites an existing
   // one)

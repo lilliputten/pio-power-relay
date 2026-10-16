@@ -83,6 +83,9 @@ void WWWServer::initRoutes(PowerPlan *powerPlan) {
         body.reserve(total);
         body.concat((const char *)data, len);
 
+        Serial.printf("Got update: len=%d index=%d total=%d\n", len, index,
+                      total);
+
         // Wait until the full body has arrived
         if (index + len != total) return;
 
@@ -90,6 +93,8 @@ void WWWServer::initRoutes(PowerPlan *powerPlan) {
         JsonDocument doc;
         DeserializationError err = deserializeJson(doc, body);
         body = "";  // free the buffer as soon as we're done with it
+
+        Serial.printf("Got full data\n");
 
         if (err) {
           const auto errCode = err.code();
@@ -107,7 +112,8 @@ void WWWServer::initRoutes(PowerPlan *powerPlan) {
 
         // Validate required fields
         if (!doc["id"].is<int>() || !doc["slots"].is<JsonArray>()) {
-          String json = "{\"error\":\"expected {id: int, slots: object[]}\"}";
+          const String errStr = "expected {id: int, slots: object[]}";
+          String json = "{\"error\":\"" + errStr + "\"}";
           request->send(400, "application/json", json);
           return;
         }
@@ -119,7 +125,7 @@ void WWWServer::initRoutes(PowerPlan *powerPlan) {
                       jsonArray.size());
 
         const String errorCode = powerPlan->updateSlotsFromJsonArray(jsonArray);
-        if (errorCode || errorCode != "OK") {
+        if (errorCode && errorCode != "OK") {
           JsonDocument errorDoc;
           errorDoc["error"] = "Updating data error";
           errorDoc["errorCode"] = errorCode;

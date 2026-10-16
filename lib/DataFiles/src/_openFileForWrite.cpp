@@ -11,14 +11,15 @@ File DataFiles::_openFileForWrite(const char* filename) {
   // 1. Attempt to open directly from SD Card first
   file = SD.open(filename, FILE_WRITE);
   if (file) {
-    Serial.printf("Successfully opened %s from SD Card\n", filename);
+    Serial.printf("Successfully opened %s from SD Card for write\n", filename);
   } else {
 #endif
 #ifdef USE_LFS
     // 2. If SD fails, attempt to open directly from LittleFS
     file = LittleFS.open(filename, FILE_WRITE);
     if (file) {
-      Serial.printf("Successfully opened %s from LittleFS\n", filename);
+      Serial.printf("Successfully opened %s from LittleFS for write\n",
+                    filename);
     }
 #endif
 #ifdef USE_SD

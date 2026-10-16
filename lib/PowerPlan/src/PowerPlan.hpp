@@ -49,14 +49,15 @@ class PowerPlan {
   void freeSlots() { this->slots.clear(); }
 
   bool readRawData(T2DStrings& rawData) const {
-    const char* filename = this->getFileName().c_str();
-    return DataFiles::loadDataFile(filename, rawData);
+    const String filename = this->getFileName();
+    return DataFiles::loadDataFile(filename.c_str(), rawData);
   }
 
   bool writeRawData(const T2DStrings& rawData) const {
-    const char* filename = this->getFileName().c_str();
-    Serial.printf("[PowerPlan:writeRawData] Writing file '%s'\n", filename);
-    return DataFiles::writeDataFile(filename, rawData);
+    const String filename = this->getFileName();
+    Serial.printf("[PowerPlan:writeRawData] Writing file '%s'\n",
+                  filename.c_str());
+    return DataFiles::writeDataFile(filename.c_str(), rawData);
   }
 
   void loadDefaultSlots() {
@@ -269,7 +270,7 @@ class PowerPlan {
 
     // TODO: Update the cuurently looping data (somehow)
 
-    return "";
+    return "OK";
   }
 
   String updateSlotsFromJson(const String& jsonStr) {
