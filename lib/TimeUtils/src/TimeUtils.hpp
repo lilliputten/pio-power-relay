@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#include <vector>
+
 #define TTimeSec uint16_t
 
 struct TTimeOfPeriodStep {
@@ -16,21 +18,50 @@ struct TTimeOfPeriodResult {
   String name;  // Eg: sec, min, hr, day, week, month
 };
 
+struct TTimePeriod {
+  TTimeSec time;
+  String name;  // Eg: sec, min, hr, day, week, month
+};
+#define TTimePeriods std::vector<TTimePeriod>
+
 static const TTimeOfPeriodStep timeOfPeriodSteps[] = {
-    {0, "sec"},   // seconds
-    {60, "min"},  // minutes
-    {60, "hr"},   // hours
-    {24, "day"},  // days
-    {7, "week"},  // weeks
+    {0, "s"},   // seconds
+    {60, "m"},  // minutes
+    {60, "h"},  // hours
+    {24, "d"},  // days
+                // {7, "w"},  // weeks
 };
 static const size_t timeOfPeriodStepsCount =
     sizeof(timeOfPeriodSteps) / sizeof(TTimeOfPeriodStep);
 
 class TimeUtils {
  public:
-  // Get a string like "1/10min" for timeSec, periodSec
-  static TTimeOfPeriodResult timeOfPeriodFromSecs(TTimeSec timeSec,
-                                                  TTimeSec periodSec) {
+  static TTimePeriods getSecPeriodSteps(TTimeSec periodSec) {
+    size_t step = 0;
+    TTimePeriods periods;
+    TTimeSec period = periodSec;
+    String name = timeOfPeriodSteps[step].name;
+    while (step < timeOfPeriodStepsCount) {
+      step++;
+      const auto range = timeOfPeriodSteps[step].range;
+      if (!range) {
+        continue;
+      }
+      TTimeSec remainder = period % range;
+      period /= range;
+      TTimePeriod periodItem = {remainder, name};
+      if (!period) {
+        break;
+      }
+      name = timeOfPeriodSteps[step].name;
+      periods.push_back(periodItem);
+    }
+    std::reverse(periods.begin(), periods.end());
+    return periods;
+  }
+
+  static TTimeOfPeriodResult timeOfPeriod(TTimeSec timeSec,
+                                          TTimeSec periodSec) {
     size_t step = 0;
     TTimeSec time = timeSec;
     TTimeSec period = periodSec;

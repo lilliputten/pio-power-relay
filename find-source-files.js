@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Lookup folders
-const targetDirectories = ['lib', 'src'];
+const targetDirectories = ['include', 'lib', 'src', 'test'];
 
 // Find all *.c, *.h, *.cpp, *.hpp files
 const filePattern = /\.[ch]p*$/;
