@@ -1,6 +1,8 @@
 #ifndef TimeUtils_DEFINED
 #define TimeUtils_DEFINED
 
+// #define TimeUtils_DEBUG
+
 #include <Arduino.h>
 
 #include <vector>
@@ -15,12 +17,12 @@ struct TTimeOfPeriodStep {
 struct TTimeOfPeriodResult {
   TTimeSec time;
   TTimeSec period;
-  String name;  // Eg: sec, min, hr, day, week, month
+  String name;  // Eg: s, m, h, d, etc
 };
 
 struct TTimePeriod {
   TTimeSec time;
-  String name;  // Eg: sec, min, hr, day, week, month
+  String name;  // Eg: s, m, h, d, etc
 };
 #define TTimePeriods std::vector<TTimePeriod>
 
@@ -47,17 +49,37 @@ class TimeUtils {
       if (!range) {
         continue;
       }
-      TTimeSec remainder = period % range;
-      period /= range;
-      TTimePeriod periodItem = {remainder, name};
-      if (!period) {
+      const TTimeSec value = period % range;
+      const TTimeSec nextPeriod = period / range;
+#ifdef TimeUtils_DEBUG
+      // DEBUG:
+      printf(
+          "[TimeUtils] Step %d (%s): period=%d range=%d value=%d "
+          "nextPeriod=%d\n",
+          step, name.c_str(), period, range, value, nextPeriod);
+#endif
+      const TTimePeriod periodItem = {value, name};
+      periods.push_back(periodItem);
+      if (!nextPeriod) {
         break;
       }
       name = timeOfPeriodSteps[step].name;
-      periods.push_back(periodItem);
+      period = nextPeriod;
     }
     std::reverse(periods.begin(), periods.end());
     return periods;
+  }
+
+  static String getSecPeriodString(TTimeSec periodSec,
+                                   const size_t maxSteps = 2) {
+    const TTimePeriods periods = getSecPeriodSteps(periodSec);
+    String result = "";
+    for (size_t i = 0; i < periods.size() && i < maxSteps; i++) {
+      if (i) result += " ";
+      const TTimePeriod& period = periods[i];
+      result += String(period.time) + period.name;
+    }
+    return result;
   }
 
   static TTimeOfPeriodResult timeOfPeriod(TTimeSec timeSec,

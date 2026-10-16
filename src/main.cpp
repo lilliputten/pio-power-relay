@@ -28,19 +28,25 @@ static long _count = 0;
 void setup() {
   Serial.begin(115200);
 
-  TFT_eSPI tft = tftUtils.getTFT();
+  TFT_eSPI &tft = tftUtils.getTFT();
 
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(0);
   tft.setTextPadding(10);
 
   delay(100);
-  Serial.printf("\nProject: %s @ %s\n", PROJECT_NAME, PROJECT_INFO);
+
+  char projectInfoBuf[50];
+  snprintf(projectInfoBuf, sizeof(projectInfoBuf), "%s @ %s\n", PROJECT_NAME,
+           PROJECT_INFO);
+  Serial.println();
+  Serial.print("Project: ");
+  Serial.println(projectInfoBuf);
+  tft.println(projectInfoBuf);
 
   Serial.printf("TICK_DELAY: %d\n", TICK_DELAY);
 
   DataFiles::initDataFiles();
-  tftUtils.initTFT();
 
 #ifdef USE_WIFI_UTILS
   wiFiUtils.initWiFi();
@@ -57,12 +63,16 @@ void setup() {
   wwwServer.initServer();
 #endif
 
+  tft.println("Before power plan");
   powerPlan.initPowerPlan();
+  tft.println("After power plan");
 
   const char *done = "-- Setup done --";
   Serial.println(done);
   tft.print(done);
   // tft.println("                                             ");
+
+  // vTaskDelete(NULL);  // DEBUG: Stop here
 
   const uint16_t waitForStart = 10000;
   const uint16_t waitingDelay = 500;
@@ -72,7 +82,7 @@ void setup() {
     tft.print(dotStr);
     delay(waitingDelay);
   }
-  const char *okStr = " OK  ";
+  const char *okStr = " OK ";
   Serial.println(okStr);
   tft.println(okStr);
   delay(waitingDelay * 2);

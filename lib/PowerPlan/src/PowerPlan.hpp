@@ -5,6 +5,7 @@
 
 #include "DataFiles.hpp"
 #include "TFTUtils.hpp"
+#include "TimeUtils.hpp"
 
 #define CHANNEL_ON HIGH
 #define CHANNEL_OFF LOW
@@ -61,10 +62,12 @@ class PowerPlan {
     const size_t defaultSlotsItemSize = sizeof(defaultSlots[0]);
     const size_t defaultSlotsCount = defaultSlotsSize / defaultSlotsItemSize;
 
-    Serial.printf("defaultSlotsCount: %d\n", defaultSlotsCount);
-    Serial.printf("itemSize: %d\n", itemSize);                          // 20
-    Serial.printf("defaultSlotsItemSize: %d\n", defaultSlotsItemSize);  // 20
-    Serial.printf("defaultSlotsSize: %d\n", defaultSlotsSize);
+    /* // DEBUG
+     * Serial.printf("defaultSlotsCount: %d\n", defaultSlotsCount);
+     * Serial.printf("itemSize: %d\n", itemSize);                          // 20
+     * Serial.printf("defaultSlotsItemSize: %d\n", defaultSlotsItemSize);  // 20
+     * Serial.printf("defaultSlotsSize: %d\n", defaultSlotsSize);
+     */
 
     // Free previously allocated memory
     this->freeSlots();
@@ -213,14 +216,25 @@ class PowerPlan {
   }
 
   void initPowerPlan() {
-    Serial.println("-- Power Plan Initialization started --");
+    auto tft = this->tft;
+
+    Serial.printf("-- Power Plan %d Initialization started --", this->id);
+    if (tft) tft->printf("Power plan %d\n", this->id);
 
     this->loadSlots();
 
     // DEBUG
     int rowNo = 0;
-    for (const PowerPlanSlot& slot : this->slots) {
-      Serial.printf("%d: %d %s\n", ++rowNo, slot.timeSec, slot.textId);
+    Serial.printf("Loaded %d slots:\n", this->slots.size());
+    if (tft) tft->printf("Loaded %d slots:\n", this->slots.size());
+    for (size_t i = 0; i < this->slots.size(); i++) {
+      const PowerPlanSlot& slot = this->slots[i];
+      char charBuf[30];
+      snprintf(charBuf, sizeof(charBuf), "%d: %s %s\n", ++rowNo,
+               TimeUtils::getSecPeriodString(slot.timeSec),
+               slot.textId ? "(" + slot.textId + ")" : "--");
+      Serial.print(charBuf);
+      if (tft) tft->print(charBuf);
     }
 
     this->resetTickingLoop();
@@ -231,7 +245,7 @@ class PowerPlan {
   // Constructor
   PowerPlan(uint8_t id, uint8_t channel, TFTUtils* tftUtils = nullptr) {
     if (tftUtils) {
-      this->tft = &tftUtils->getTFT();
+      this->tft = &(tftUtils->tft);
     }
     this->id = id;
     this->channel = channel;

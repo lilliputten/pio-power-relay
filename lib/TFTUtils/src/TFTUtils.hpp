@@ -20,11 +20,18 @@
 #define FONT_XL_SIZE 80
 
 class TFTUtils {
+ private:
+  void initTFT() {
+    this->tft.init();
+    this->tft.setRotation(TFT_ROTATION);
+    this->tft.fillScreen(TFT_BLACK);
+    this->tft.setTextPadding(10);
+  }
+
  public:
   TFT_eSPI tft = TFT_eSPI();
 
-  TFT_eSPI& getTFT();
-  void initTFT();
+  TFT_eSPI& getTFT() { return this->tft; }
 
   TFTUtils() {
     // Constructor

@@ -32,9 +32,9 @@
     "format": "echo --Format files-- && node find-source-files.js | xargs clang-format -i --verbose",
     "check": "echo --Run source code static analysisn-- && pio check -e esp32dev --src-filters=\"+<src/>\" --src-filters=\"-<.pio/>\"",
     "uploadfs": "echo --Re-upload LittleFS files from data folder-- && pio run --target buildfs && pio run --target uploadfs",
-    "ide-config": "echo --Initialize vim environment-- && pio init --ide vim",
-    "ide-config-vscode-native": "echo --Initialize vscode test environment-- && pio init --ide vscode --environment native",
+    "ide-config-vim": "echo --Initialize vim environment-- && pio init --ide vim",
     "ide-config-vscode-default": "echo --Initialize vscode default environment-- && pio init --ide vscode --environment esp32dev",
+    "ide-config-vscode-native": "echo --Initialize vscode test environment-- && pio init --ide vscode --environment native",
     "test": "echo --Run tests-- && pio test -e native"
   }
 }
