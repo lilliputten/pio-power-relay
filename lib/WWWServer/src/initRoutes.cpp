@@ -21,10 +21,12 @@ const char *htmlPage = R"rawliteral(
 
 #define TRequest AsyncWebServerRequest
 
-void WWWServer::initRoutes(PowerPlan *powerPlan) {
+void WWWServer::initRoutes() {
   TServer &s = this->server;
+  const auto powerStation = this->powerStation;
+  const auto tempSensor = this->tempSensor;
 
-  // Root route
+  // Root route demo (will be replaced by the SPA)
   s.on("/", HTTP_GET, [](TRequest *request) {
     String html = String(htmlPage);
     html.replace("%IP%", WiFi.localIP().toString());
@@ -32,50 +34,73 @@ void WWWServer::initRoutes(PowerPlan *powerPlan) {
   });
 
   // JSON API endpoint
-  s.on("/api/data", HTTP_GET, [](TRequest *request) {
-    String json = "{\"temp\":25.5,\"humidity\":60}";
+  s.on("/api/demo", HTTP_GET, [](TRequest *request) {
+    String json = "{\"demo\":true,\"temp\":25.5,\"humidity\":60}";
+    request->send(200, "application/json", json);
+  });
+
+  /** Get the device status: i.e. all the possible data */
+  s.on("/api/status", HTTP_GET, [tempSensor](TRequest *request) {
+    JsonDocument doc;
+    doc["ok"] = true;
+    doc["powerChannelsCount"] = POWER_CHANNELS_COUNT;
+    if (tempSensor) {
+      doc["temp"] = tempSensor->getTemperature();
+    }
+    String json;
+    serializeJson(doc, json);
+    request->send(200, "application/json", json);
+  });
+
+  /** Get power plans count */
+  s.on("/api/power/plans-count", HTTP_GET, [powerStation](TRequest *request) {
+    String json =
+        "{\"ok\":true,\"count\":" + String(POWER_CHANNELS_COUNT) + "}";
     request->send(200, "application/json", json);
   });
 
   /** Send power plan slots data to the client by id
    */
-  s.on("/api/power-plan/slots", HTTP_GET, [powerPlan](TRequest *request) {
-    // 1. Check that the 'id' parameter is present
-    if (!request->hasParam("id")) {
-      String json = "{\"error\":\"missing 'id' parameter\"}";
-      request->send(400, "application/json", json);
-      return;
-    }
+  s.on("^\\/api\\/power\\/plan\\/([0-9]+)\\/slots$", HTTP_GET,
+       [powerStation](TRequest *request) {
+         /* // Retrieve the 'id' parameter if it's present from the url query
+          * param if (!request->hasParam("id")) { String json =
+          * "{\"error\":\"missing 'id' parameter\"}"; request->send(400,
+          * "application/json", json); return;
+          * }
+          * int id = request->getParam("id")->value().toInt();
+          */
 
-    // 2. Parse it
-    int id = request->getParam("id")->value().toInt();
+         // Get the first captured group (the id)
+         String idStr = request->pathArg(0);
+         int id = idStr.toInt();
 
-    // // 3. Look up the plan for this id (your own storage/registry)
-    // PowerPlan* powerPlan = findPowerPlanById(id);
-    if (!powerPlan) {
-      String json = "{\"error\":\"plan not found\"}";
-      request->send(404, "application/json", json);
-      return;
-    }
+         // // Look up the plan for this id (your own storage/registry)
+         PowerPlan *powerPlan = powerStation->findPowerPlanById(id);
+         if (!powerPlan) {
+           String json = "{\"error\":\"plan " + String(id) + " not found\"}";
+           request->send(404, "application/json", json);
+           return;
+         }
 
-    // 4. Serialize and send
-    String json = powerPlan->getSlotsJson();
-    request->send(200, "application/json", json);
-  });
+         // Serialize and send
+         String json = powerPlan->getSlotsJson();
+         request->send(200, "application/json", json);
+       });
 
   /* Update power plan slots data with clients' data
    * Example payload:
    * {"id":1,"slots":[{"timeSec":5,"textId":"Test"}]}
    */
   s.on(
-      "/api/power-plan/slots", HTTP_POST,
+      "^\\/api\\/power\\/plan\\/([0-9]+)\\/slots$", HTTP_POST,
       [](AsyncWebServerRequest *request) {
         // Response is sent from the body callback below; this handler can stay
         // empty
       },
       nullptr,  // no upload handler
-      [powerPlan](AsyncWebServerRequest *request, uint8_t *data, size_t len,
-                  size_t index, size_t total) {
+      [powerStation](AsyncWebServerRequest *request, uint8_t *data, size_t len,
+                     size_t index, size_t total) {
         // Accumulate the body across chunks (ESPAsyncWebServer may deliver
         // it in pieces)
         static String body;
@@ -83,8 +108,12 @@ void WWWServer::initRoutes(PowerPlan *powerPlan) {
         body.reserve(total);
         body.concat((const char *)data, len);
 
-        Serial.printf("Got update: len=%d index=%d total=%d\n", len, index,
-                      total);
+        // Get the first captured group (the id)
+        String idStr = request->pathArg(0);
+        int id = idStr.toInt();
+
+        Serial.printf("Got update: id=%d, len=%d index=%d total=%d\n", id, len,
+                      index, total);
 
         // Wait until the full body has arrived
         if (index + len != total) return;
@@ -101,7 +130,7 @@ void WWWServer::initRoutes(PowerPlan *powerPlan) {
           JsonDocument errorDoc;
           errorDoc["error"] = "Invalid json";
           errorDoc["errorCode"] = err.code();
-          errorDoc["errorExplanation"] = err.c_str();
+          errorDoc["errorDetails"] = err.c_str();
           String json;
           serializeJson(errorDoc, json);
           request->send(400, "application/json", json);
@@ -111,14 +140,23 @@ void WWWServer::initRoutes(PowerPlan *powerPlan) {
         }
 
         // Validate required fields
-        if (!doc["id"].is<int>() || !doc["slots"].is<JsonArray>()) {
-          const String errStr = "expected {id: int, slots: object[]}";
+        if (/* !doc["id"].is<int>() || */ !doc["slots"].is<JsonArray>()) {
+          const String errStr = "expected {slots: object[]}";
           String json = "{\"error\":\"" + errStr + "\"}";
           request->send(400, "application/json", json);
           return;
         }
+        /* // Retrieve the id from the data (obsolete: it's passed in the url
+         * and parsed from `request->pathArg` int id = doc["id"].as<int>();
+         */
 
-        int id = doc["id"].as<int>();
+        // // 3. Look up the plan for this id (your own storage/registry)
+        PowerPlan *powerPlan = powerStation->findPowerPlanById(id);
+        if (!powerPlan) {
+          String json = "{\"error\":\"plan " + String(id) + " not found\"}";
+          request->send(404, "application/json", json);
+          return;
+        }
 
         const auto jsonArray = doc["slots"].as<JsonArray>();
         Serial.printf("[initServer] Received slots: id=%d count=%d", id,
@@ -147,9 +185,3 @@ void WWWServer::initRoutes(PowerPlan *powerPlan) {
     request->send(404, "text/html", "<h1>Error</h1><p>Page not found</p>");
   });
 }
-
-void WWWServer::initServer() {
-  // __initRoutes(this->server);
-}
-
-void WWWServer::startServer() { this->server.begin(); }

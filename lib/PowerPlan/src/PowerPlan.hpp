@@ -1,6 +1,8 @@
 #ifndef PowerPlan_DEFINED
 #define PowerPlan_DEFINED
 
+// #define PowerPlan_DEBUG
+
 #include <ArduinoJson.h>
 
 #include <vector>
@@ -8,6 +10,7 @@
 #include "DataFiles.hpp"
 #include "TFTUtils.hpp"
 #include "TimeUtils.hpp"
+#include "constants.hpp"
 
 #define CHANNEL_ON HIGH
 #define CHANNEL_OFF LOW
@@ -15,26 +18,30 @@
 
 #define TTimeSec uint16_t
 
+#define TPowerPlanId uint8_t
+#define TChannelNo uint8_t
+
 struct PowerPlanSlot {
-  TTimeSec timeSec;  // 2b
-  String textId;     // 16b
+  TTimeSec timeSec;
+  String textId;
 };
 
 #define TPowerPlanSlots std::vector<PowerPlanSlot>
 
 static const PowerPlanSlot defaultSlots[] = {
-    {10, "Test"},
-    {10 * 60 * 60 + 3 * 60 + 20, "Second slot"},
+    {10, "Test"}, {5, "5s"},
+    // {2 * 60 * 60 + 3 * 60 + 20, "2h 3m 20s"},
 };
 
 class PowerPlan {
  private:
   TFT_eSPI* tft = nullptr;
-  uint8_t id = 0;
-  uint8_t channel = 0;
+  TPowerPlanId id = 0;
+  TChannelNo channel = 0;
 
   // Ticking loop
   unsigned int loops = 0;
+  bool initalState = INITIAL_PLAN_STATE;
   bool state = INITIAL_PLAN_STATE;
   size_t currentSlot = 0;
   unsigned long ticksStarted = 0;
@@ -77,12 +84,12 @@ class PowerPlan {
     this->freeSlots();
 
     // Allocate memory
-    slots.reserve(defaultSlotsCount);
+    this->slots.reserve(defaultSlotsCount);
 
     // Copy the entire memory block cleanly in one step
     for (size_t i = 0; i < defaultSlotsCount; i++) {
       // NOTE: Do deep-copy, including the String member
-      slots.push_back(defaultSlots[i]);
+      this->slots.push_back(defaultSlots[i]);
     }
   }
 
@@ -102,28 +109,30 @@ class PowerPlan {
     return rawItem;
   }
 
-  void loadSlots() {
+  bool loadSlots() {
     T2DStrings rawData;
     const bool success = this->readRawData(rawData);
     if (!success) {
       this->loadDefaultSlots();
-      return;
+      return false;
+    } else {
+      const size_t count = rawData.size();
+
+      // Free previously allocated memory
+      this->freeSlots();
+
+      // Allocate memory
+      slots.reserve(count);
+
+      // Copy the entire memory block cleanly in one step
+      for (size_t i = 0; i < count; i++) {
+        PowerPlanSlot slot = PowerPlan::strings2Slot(rawData[i], i + 1);
+        // NOTE: Do deep-copy, including the String member
+        slots.push_back(slot);
+      }
     }
 
-    const size_t count = rawData.size();
-
-    // Free previously allocated memory
-    this->freeSlots();
-
-    // Allocate memory
-    slots.reserve(count);
-
-    // Copy the entire memory block cleanly in one step
-    for (size_t i = 0; i < count; i++) {
-      PowerPlanSlot slot = PowerPlan::strings2Slot(rawData[i], i + 1);
-      // NOTE: Do deep-copy, including the String member
-      slots.push_back(slot);
-    }
+    return success;
   }
 
   bool writeSlots() const {
@@ -143,24 +152,28 @@ class PowerPlan {
   }
 
   void updateChannelState() const {
-    uint8_t signal = this->state ? CHANNEL_ON : CHANNEL_OFF;
+    TChannelNo signal = this->state ? CHANNEL_ON : CHANNEL_OFF;
+#ifdef PowerPlan_DEBUG
     Serial.printf(
         "PowerPlan updateChannelState: slot #%d channel=%d state=%s "
         "signal=%d\n",
         this->currentSlot, this->channel, this->state ? "ON" : "OFF", signal);
+#endif
     digitalWrite(this->channel, signal);
   }
 
   void resetTickingLoop() {
     this->ticksStarted = millis();
     this->currentSlot = 0;
-    this->state = INITIAL_PLAN_STATE;
+    this->state = this->initalState;
     this->updateChannelState();
   }
 
  public:
+  TPowerPlanId getId() const { return this->id; }
+
   // Display current status on a tft screen
-  int showInfo(int yp) {
+  int showInfo(int yp) const {
     auto tft = this->tft;
     if (!tft) return 0;
 
@@ -172,13 +185,12 @@ class PowerPlan {
     tft->setTextSize(1);
     tft->setCursor(xp, yp, font1);
 
-    char charBuf[50];
-
     const PowerPlanSlot& slot = this->slots[this->currentSlot];
 
     const unsigned long ticks = millis();
     const uint16_t diffSec = (ticks - this->ticksStarted) / 1000;
 
+    char charBuf[50];
     snprintf(charBuf, sizeof(charBuf), "Pwr %d %s %d/%d %d/%ds", this->id,
              this->state ? "+" : "-", this->currentSlot + 1, this->slots.size(),
              diffSec, slot.timeSec);
@@ -201,12 +213,17 @@ class PowerPlan {
     const uint16_t diffSec = (ticks - this->ticksStarted) / 1000;
     const bool goToNext = diffSec >= slot.timeSec;
 
-    // Serial.printf("PowerPlan tick: slot #%d (%s) secs=%d/%d state=%s\n",
-    // this->currentSlot, slot.textId, diffSec, slot.timeSec, this->state ?
-    // "ON": "OFF");
+    const size_t slotsCount = this->slots.size();
+
+#ifdef PowerPlan_DEBUG
+    Serial.printf(
+        "PowerPlan tick: slot #%d/%d (%s) secs=%d/%d state=%s next=%s\n",
+        this->currentSlot, slotsCount, slot.textId, diffSec, slot.timeSec,
+        this->state ? "ON" : "OFF", goToNext ? "yes" : "no");
+#endif
 
     if (goToNext) {
-      if (++this->currentSlot >= this->slots.size()) {
+      if (++this->currentSlot >= slotsCount) {
         // Case 1: The plan program has finished, start again
         this->resetTickingLoop();
         this->loops++;
@@ -292,7 +309,7 @@ class PowerPlan {
   void initPowerPlan() {
     auto tft = this->tft;
 
-    Serial.printf("-- Power Plan %d Initialization started --", this->id);
+    Serial.printf("-- Power Plan %d Initialization started --\n", this->id);
     if (tft) tft->printf("Power plan %d\n", this->id);
 
     this->loadSlots();
@@ -318,13 +335,18 @@ class PowerPlan {
       }
     }
 
+    if (this->slots.size() <= 1) {
+      Serial.println(RED
+                     "Only slots amount more than 1 could be effective." RESET);
+    }
+
     this->resetTickingLoop();
 
-    Serial.println("-- Power Plan Initialization done --");
+    Serial.printf("-- Power Plan %d Initialization done --\n", this->id);
   }
 
   // Constructor
-  PowerPlan(uint8_t id, uint8_t channel, TFTUtils* tftUtils = nullptr) {
+  PowerPlan(TPowerPlanId id, TChannelNo channel, TFTUtils* tftUtils = nullptr) {
     if (tftUtils) {
       this->tft = &(tftUtils->tft);
     }
@@ -349,4 +371,4 @@ class PowerPlan {
   }
 };
 
-#endif
+#endif  // PowerPlan_DEFINED

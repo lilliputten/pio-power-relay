@@ -4,13 +4,11 @@
 #include <TFT_eSPI.h>  // Hardware-specific library, see configuration in `User_Setup.h`
 
 #include "TFTUtils.hpp"
+#include "constants.hpp"
 
-// Temp sensor
-#include <DallasTemperature.h>
-#include <OneWire.h>
-
-#define TFT_GREY 0x5AEB  // New color
-// #define TFT_BROWN 0x38E0
+// // Temp sensor
+// #include <DallasTemperature.h>
+// #include <OneWire.h>
 
 // Pause in milliseconds between screens, change to 0 to time font rendering
 #define WAIT 1000
@@ -21,8 +19,8 @@ class Demos {
   void demoFont(TFT_eSPI &tft);
   void demoEnv();
   // TempSensor
-  void demoTempSensorInit();
-  int demoTempSensorShow(TFT_eSPI &tft, int yp);
+  // void demoTempSensorInit(); // UNUSED
+  // int demoTempSensorShow(TFT_eSPI &tft, int yp); // UNUSED
   // Relay
   void demoRelayInit();
   int demoRelayTick(TFT_eSPI &tft, int yp);

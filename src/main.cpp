@@ -1,14 +1,31 @@
-#define USE_WIFI_UTILS 1
-#define USE_WWW_SERVER 1
-// #define USE_RELAY_DEMO 1
+#define USE_WIFI_UTILS
+#define USE_WWW_SERVER
+#define USE_POWER_STATION
+#define USE_TEMP_SENSOR
+#define SHOW_TEMP_SENSOR_DEMO
+// #define USE_DATA_FILES_DEMO
+// #define USE_RELAY_DEMO
+
+#ifndef POWER_CHANNELS_COUNT
+#error "Constant POWER_CHANNELS_COUNT must be defined!"
+#endif
 
 #include "DataFiles.hpp"
 #include "Demos.hpp"
-#include "PowerPlan.hpp"
 #include "TFTUtils.hpp"
 
 Demos demos;
 TFTUtils tftUtils;
+
+#ifdef USE_POWER_STATION
+#include "PowerStation.hpp"
+PowerStation powerStation(&tftUtils);
+#endif
+
+#ifdef USE_TEMP_SENSOR
+#include "TempSensor.hpp"
+TempSensor tempSensor(&tftUtils);
+#endif
 
 #ifdef USE_WIFI_UTILS
 #include "WiFiUtils.hpp"
@@ -20,10 +37,8 @@ WiFiUtils wiFiUtils(&tftUtils);
 WWWServer wwwServer(&tftUtils);
 #endif
 
-PowerPlan powerPlan(1, RELAY_CH1, &tftUtils);
-
 // Iteration count
-static long _count = 0;
+static unsigned long _count = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -48,24 +63,34 @@ void setup() {
 
   DataFiles::initDataFiles();
 
-#ifdef USE_WIFI_UTILS
-  wiFiUtils.initWiFi();
-#endif
-
 #ifdef USE_RELAY_DEMO
   demos.demoRelayInit();
 #endif
 
-  demos.demoTempSensorInit();
-  // demos.demoDataFiles();
+#ifdef USE_TEMP_SENSOR
+  tempSensor.initTempSensor();
+#endif
 
-  tft.println("Before power plan");
-  powerPlan.initPowerPlan();
-  tft.println("After power plan");
+#ifdef USE_DATA_FILES_DEMO
+  demos.demoDataFiles();
+#endif
+
+#ifdef USE_POWER_STATION
+  powerStation.initPowerStation();
+#endif
+
+#ifdef USE_WIFI_UTILS
+  wiFiUtils.initWiFi();
+#endif
 
 #ifdef USE_WWW_SERVER
+#ifdef USE_POWER_STATION
+  wwwServer.setPowerStation(&powerStation);
+#endif
+#ifdef USE_TEMP_SENSOR
+  wwwServer.setTempSensor(&tempSensor);
+#endif
   wwwServer.initServer();
-  wwwServer.initRoutes(&powerPlan);
   wwwServer.startServer();
 #endif
 
@@ -94,20 +119,30 @@ void setup() {
 }
 
 void loop() {
+  TFT_eSPI &tft = tftUtils.getTFT();
+  tft.fillScreen(TFT_BLACK);
+
   Serial.println();
 #if defined(TICK_DELAY) && (TICK_DELAY != 0)
   Serial.println("Loop: " + String(_count));
 #endif
 
   int yp = 10;
-  yp += demos.demoTempSensorShow(tftUtils.tft, yp);
+
+#ifdef SHOW_TEMP_SENSOR_DEMO
+#ifndef USE_TEMP_SENSOR
+#error "USE_TEMP_SENSOR must be defined to use SHOW_TEMP_SENSOR_DEMO"
+#endif
+  yp += tempSensor.showInfo(yp);
+#endif
+
 #ifdef USE_RELAY_DEMO
   yp += demos.demoRelayTick(tftUtils.tft, yp);
 #endif
 
 #ifndef USE_RELAY_DEMO
-  powerPlan.nextTick();
-  yp += powerPlan.showInfo(yp);
+  powerStation.nextTick();
+  yp += powerStation.showInfo(yp);
 #endif
 
   // demos.demoPrint(tftUtils.tft);
