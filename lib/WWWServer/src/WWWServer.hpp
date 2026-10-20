@@ -36,15 +36,10 @@ class WWWServer {
   void initServer() {
     if (tftUtils) tftUtils->writeLine("Starting WWW Server...");
 
-    if (!this->powerStation) {
-      Serial.println(
-          YELLOW
-          "[WWWServer]: PowerStation reference hasn't been passed!" RESET);
-    }
-    if (!this->tempSensor) {
-      Serial.println(
-          YELLOW "[WWWServer]: TempSensor reference hasn't been passed!" RESET);
-    }
+    if (!this->powerStation)
+      Serial.println(YELLOW "[WWWServer]: PowerStation absent!" RESET);
+    if (!this->tempSensor)
+      Serial.println(YELLOW "[WWWServer]: TempSensor absent!" RESET);
 
     this->initRoutes();
   }

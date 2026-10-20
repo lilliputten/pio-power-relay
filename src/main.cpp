@@ -1,11 +1,16 @@
-#define USE_WIFI_UTILS
-#define USE_WWW_SERVER
-#define USE_POWER_STATION
-#define USE_TEMP_SENSOR
-#define SHOW_TEMP_SENSOR_DEMO
+#define USE_TEMP_SENSOR  // NOTE: It's required for correct DataFiles
+                         // initialzation for some reason. (TODO: To investigate
+                         // the issue?)
+
+// #define USE_WIFI_UTILS
+// #define USE_WWW_SERVER
+// #define USE_POWER_STATION
+// #define SHOW_TEMP_SENSOR_DEMO
 
 // #define USE_DATA_FILES_DEMO
 // #define USE_RELAY_DEMO
+
+// #define SHOW_DEMO_LOOP
 
 #ifndef POWER_CHANNELS_COUNT
 #error "Constant POWER_CHANNELS_COUNT must be defined!"
@@ -40,8 +45,8 @@ WiFiUtils wiFiUtils(&tftUtils);
 WWWServer wwwServer(&tftUtils);
 #endif
 
-// #include <TFT_eSPI_Scroll.h>
-// #include <colors/1bit.h>
+#include "InfoScreens.hpp"
+InfoScreens infoScreens(&tftUtils);
 
 // Iteration count
 static unsigned long _count = 0;
@@ -113,6 +118,8 @@ void setup() {
   wwwServer.startServer();
 #endif
 
+  infoScreens.initScreens();
+
   tftUtils.writeLine("Setup done");
 
   tftUtils.delayProgressBar(5000, 500, "OK");
@@ -126,8 +133,9 @@ void setup() {
 }
 
 void loop() {
+#ifdef SHOW_DEMO_LOOP
   TFT_eSPI &tft = tftUtils.getTFT();
-  tft.fillScreen(TFT_BLACK);
+  // tft.fillScreen(TFT_BLACK);
 
   Serial.println();
 #if defined(TICK_DELAY) && (TICK_DELAY != 0)
@@ -157,6 +165,9 @@ void loop() {
 
   // Next loop interation
   _count++;
+#else
+  infoScreens.tick();
+#endif
 
 #if defined(TICK_DELAY) && (TICK_DELAY != 0)
   // Do a delay otherwise

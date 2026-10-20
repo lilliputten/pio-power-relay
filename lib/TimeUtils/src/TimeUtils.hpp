@@ -8,6 +8,7 @@
 #include <vector>
 
 #define TTimeSec uint16_t
+#define TTick unsigned long
 
 struct TTimeOfPeriodStep {
   TTimeSec range;  // Eg: 60, 60, 24, 7, 30
@@ -38,6 +39,8 @@ static const size_t timeOfPeriodStepsCount =
 
 class TimeUtils {
  public:
+  /* Get time period parts for time period value in seconds, eg: 80 -> {{1,
+   * "m"}, {20, "s"}} */
   static TTimePeriods getSecPeriodSteps(TTimeSec periodSec) {
     size_t step = 0;
     TTimePeriods periods;
@@ -70,6 +73,8 @@ class TimeUtils {
     return periods;
   }
 
+  /* Get time stringified presentation of the period parts for time period value
+   * in seconds, eg: 80 -> "1m 20s" */
   static String getSecPeriodString(TTimeSec periodSec,
                                    const size_t maxSteps = 2) {
     const TTimePeriods periods = getSecPeriodSteps(periodSec);

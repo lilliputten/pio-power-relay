@@ -1,8 +1,9 @@
 #ifndef TFTUtils_DEFINED
 #define TFTUtils_DEFINED
 
-#define USE_TFT_SCROLL
+// To use scroll during setup?
 // NOTE: It requires a proper order of includes
+#define USE_TFT_SCROLL
 
 // #define TFTUtils_DEBUG
 
@@ -16,20 +17,6 @@
 #endif
 
 #include "constants.hpp"
-
-#define FONT_XS \
-  1  // 26x10-16 (rows count depends on line height, see below, in range 12-16)
-#define FONT_XS_SIZE 11
-#define FONT_SM 2  // 20x8
-#define FONT_SM_SIZE 16
-#define FONT_MD 4  // 11x5
-#define FONT_MD_SIZE 26
-#define FONT_LG 6        // 6x3 3 lines per screen
-#define FONT_LG_SIZE 40  // 3 lines per screen
-#define FONT_LCD 7       // 5x2
-#define FONT_LCD_SIZE 60
-#define FONT_XL 8  // 3x1
-#define FONT_XL_SIZE 80
 
 static const String spaces = "..............................";
 
