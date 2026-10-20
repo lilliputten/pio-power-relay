@@ -76,6 +76,17 @@ class PowerStation {
     return nullptr;
   }
 
+  JsonDocument getAllPlansStatusJson() {
+    JsonDocument doc;
+    doc["plansCount"] = this->plans.size();
+    JsonArray arr = doc["plans"].to<JsonArray>();
+    for (const PowerPlan& plan : this->plans) {
+      JsonDocument planDoc = plan.getStatusJson();
+      arr.add(planDoc.as<JsonObject>());
+    }
+    return doc;
+  }
+
   bool initPowerStation() {
     if (tftUtils) tftUtils->writeLine("Starting Power Station...");
 

@@ -79,7 +79,6 @@ void WWWServer::initRoutes() {
   /** Get the device status: i.e. all the possible data */
   s.on("/api/status", HTTP_GET, [tempSensor](TRequest* request) {
     JsonDocument doc;
-    doc["ok"] = true;
     doc["powerChannelsCount"] = POWER_CHANNELS_COUNT;
     if (tempSensor) {
       doc["temp"] = tempSensor->getTemperature();
@@ -91,8 +90,11 @@ void WWWServer::initRoutes() {
 
   /** Get power plans count */
   s.on("/api/power/plans-count", HTTP_GET, [powerStation](TRequest* request) {
+    // auto totalSlotsTimeSec = this->getTotalSlotsTimeSec();
+
     String json =
-        "{\"ok\":true,\"count\":" + String(POWER_CHANNELS_COUNT) + "}";
+        "{\"plansCount\":" + String(POWER_CHANNELS_COUNT) +
+        "}";  //  ",\"totalSlotsTimeSec\":" + String(totalSlotsTimeSec) + "}";
     request->send(200, "application/json", json);
   });
 
@@ -116,9 +118,19 @@ void WWWServer::initRoutes() {
         // Serialize and send
         String json;
         serializeJson(doc, json);
-        doc["ok"] = true;
         request->send(200, "application/json", json);
       });
+
+  /** Send common plan status data to the client */
+  s.on("/api/power/status", HTTP_GET, [powerStation](TRequest* request) {
+    // Get prepared json data
+    auto doc = powerStation->getAllPlansStatusJson();
+
+    // Serialize and send
+    String json;
+    serializeJson(doc, json);
+    request->send(200, "application/json", json);
+  });
 
   /** Send power plan slots data to the client by id */
   s.on(
@@ -140,7 +152,6 @@ void WWWServer::initRoutes() {
         // Serialize and send
         String json;
         serializeJson(doc, json);
-        doc["ok"] = true;
         request->send(200, "application/json", json);
       });
 

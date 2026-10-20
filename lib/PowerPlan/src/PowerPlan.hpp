@@ -238,17 +238,19 @@ class PowerPlan {
     }
   }
 
-  JsonDocument getStatusJson() {
+  JsonDocument getStatusJson() const {
     JsonDocument doc;
     doc["id"] = this->id;
 
-    doc["channel"] = this->channel;            // 0
-    doc["loopsCount"] = this->loops;           // 0
-    doc["initalState"] = this->initalState;    // INITIAL_PLAN_STATE
-    doc["state"] = this->state;                // INITIAL_PLAN_STATE
+    doc["channel"] = this->channel;          // 0
+    doc["loopsCount"] = this->loops;         // 0
+    doc["initalState"] = this->initalState;  // INITIAL_PLAN_STATE
+    doc["state"] = this->state;              // INITIAL_PLAN_STATE
     doc["ticksDiff"] = this->ticks - this->ticksStarted;
     doc["ticks"] = this->ticks;                // 0
     doc["ticksStarted"] = this->ticksStarted;  // 0
+
+    doc["totalSlotsTimeSec"] = this->getTotalSlotsTimeSec();
 
     doc["slotsCount"] = this->slots.size();
     doc["slot"] = this->currentSlot;  // 0
@@ -259,15 +261,27 @@ class PowerPlan {
     return doc;
   }
 
-  JsonDocument getSlotsJson() {
+  unsigned int getTotalSlotsTimeSec() const {
+    unsigned int totalTimeSec = 0;
+    for (const PowerPlanSlot& slot : this->slots) {
+      totalTimeSec += slot.timeSec;
+    }
+    return totalTimeSec;
+  }
+
+  JsonDocument getSlotsJson() const {
     JsonDocument doc;
     doc["id"] = this->id;
+    unsigned int totalTimeSec;
     JsonArray arr = doc["slots"].to<JsonArray>();
-    for (const PowerPlanSlot& slot : slots) {
+    for (const PowerPlanSlot& slot : this->slots) {
+      totalTimeSec += slot.timeSec;
       JsonObject obj = arr.add<JsonObject>();
       obj["timeSec"] = slot.timeSec;
       obj["textId"] = slot.textId;
     }
+    doc["totalSlotsTimeSec"] = totalTimeSec;
+    // doc["totalSlotsTimeSec"] = this->getTotalSlotsTimeSec();
     return doc;
   }
 
