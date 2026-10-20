@@ -44,6 +44,7 @@ class PowerPlan {
   bool initalState = INITIAL_PLAN_STATE;
   bool state = INITIAL_PLAN_STATE;
   size_t currentSlot = 0;
+  unsigned long ticks = 0;
   unsigned long ticksStarted = 0;
 
   // List of slot items
@@ -164,6 +165,7 @@ class PowerPlan {
 
   void resetTickingLoop() {
     this->ticksStarted = millis();
+    this->ticks = this->ticksStarted;
     this->currentSlot = 0;
     this->state = this->initalState;
     this->updateChannelState();
@@ -187,8 +189,8 @@ class PowerPlan {
 
     const PowerPlanSlot& slot = this->slots[this->currentSlot];
 
-    const unsigned long ticks = millis();
-    const uint16_t diffSec = (ticks - this->ticksStarted) / 1000;
+    // this->ticks = millis();
+    const uint16_t diffSec = (this->ticks - this->ticksStarted) / 1000;
 
     char charBuf[50];
     snprintf(charBuf, sizeof(charBuf), "Pwr %d %s %d/%d %d/%ds", this->id,
@@ -206,11 +208,11 @@ class PowerPlan {
 
   void nextTick() {
     const PowerPlanSlot& slot = this->slots[this->currentSlot];
-    const unsigned long ticks = millis();
+    this->ticks = millis();
     if (!this->ticksStarted) {
-      this->ticksStarted = ticks;
+      this->ticksStarted = this->ticks;
     }
-    const uint16_t diffSec = (ticks - this->ticksStarted) / 1000;
+    const uint16_t diffSec = (this->ticks - this->ticksStarted) / 1000;
     const bool goToNext = diffSec >= slot.timeSec;
 
     const size_t slotsCount = this->slots.size();
@@ -229,16 +231,36 @@ class PowerPlan {
         this->loops++;
       } else {
         // Case 2: Ok, just go to the next slot
-        this->ticksStarted = ticks;
+        this->ticksStarted = this->ticks;
         this->state = !this->state;
         this->updateChannelState();
       }
     }
   }
 
-  String getSlotsJson() {
+  JsonDocument getStatusJson() {
     JsonDocument doc;
-    doc["ok"] = true;
+    doc["id"] = this->id;
+
+    doc["channel"] = this->channel;            // 0
+    doc["loopsCount"] = this->loops;           // 0
+    doc["initalState"] = this->initalState;    // INITIAL_PLAN_STATE
+    doc["state"] = this->state;                // INITIAL_PLAN_STATE
+    doc["ticksDiff"] = this->ticks - this->ticksStarted;
+    doc["ticks"] = this->ticks;                // 0
+    doc["ticksStarted"] = this->ticksStarted;  // 0
+
+    doc["slotsCount"] = this->slots.size();
+    doc["slot"] = this->currentSlot;  // 0
+    const PowerPlanSlot& slot = this->slots[this->currentSlot];
+    doc["slotTimeSec"] = slot.timeSec;
+    doc["slotTextId"] = slot.textId;
+
+    return doc;
+  }
+
+  JsonDocument getSlotsJson() {
+    JsonDocument doc;
     doc["id"] = this->id;
     JsonArray arr = doc["slots"].to<JsonArray>();
     for (const PowerPlanSlot& slot : slots) {
@@ -246,9 +268,7 @@ class PowerPlan {
       obj["timeSec"] = slot.timeSec;
       obj["textId"] = slot.textId;
     }
-    String out;
-    serializeJson(doc, out);
-    return out;
+    return doc;
   }
 
   String updateSlotsFromJsonArray(const JsonArray& arr) {
