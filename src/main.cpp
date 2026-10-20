@@ -3,6 +3,7 @@
 #define USE_POWER_STATION
 #define USE_TEMP_SENSOR
 #define SHOW_TEMP_SENSOR_DEMO
+
 // #define USE_DATA_FILES_DEMO
 // #define USE_RELAY_DEMO
 
@@ -37,6 +38,9 @@ WiFiUtils wiFiUtils(&tftUtils);
 WWWServer wwwServer(&tftUtils);
 #endif
 
+// #include <TFT_eSPI_Scroll.h>
+// #include <colors/1bit.h>
+
 // Iteration count
 static unsigned long _count = 0;
 
@@ -44,22 +48,35 @@ void setup() {
   Serial.begin(115200);
 
   TFT_eSPI &tft = tftUtils.getTFT();
+  // TFTScroll &scroll = tftUtils.getScroll();
 
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextSize(0);
-  tft.setTextPadding(10);
+  tftUtils.initScroll();
 
-  delay(100);
-
-  char projectInfoBuf[80];
-  snprintf(projectInfoBuf, sizeof(projectInfoBuf), "%s @ %s\n", PROJECT_NAME,
-           PROJECT_INFO);
   Serial.println();
-  Serial.print("Project: ");
-  Serial.println(projectInfoBuf);
-  tft.println(projectInfoBuf);
+  const String projectInfoStr = PROJECT_NAME " @ " PROJECT_INFO;
+  tftUtils.writeLine(projectInfoStr);
 
-  Serial.printf("TICK_DELAY: %d\n", TICK_DELAY);
+  // tftUtils.writeLine(
+  //     "123456789012345678901234567890");  // 26 chars of 30 are visible
+
+  tftUtils.writeLine("TICK_DELAY: " + String(TICK_DELAY));
+  tftUtils.writeLine("Screen: " + String(tftUtils.getLineWidthInChars()) + "x" +
+                     String(tftUtils.getLinesCount()));
+
+  /* // DEBUG: Test scrolling
+   * delay(TICK_DELAY);
+   * for (int i = 0; i < 15; i++) {
+   *   long rand = random(1, 1100);
+   *   const String str = "Count: " + String(i) + " - " + String(rand);
+   *   tftUtils.writeLine(str);
+   *   delay(100);
+   * }
+   * tftUtils.delayProgressBar(5000, 500, "Started");
+   * tftUtils.writeLine("Finished");
+   * delay(TICK_DELAY);
+   */
+
+  // vTaskDelete(NULL);  // DEBUG: Stop here
 
   DataFiles::initDataFiles();
 
@@ -94,28 +111,13 @@ void setup() {
   wwwServer.startServer();
 #endif
 
-  const char *done = "-- Setup done --";
-  Serial.println(done);
-  tft.print(done);
-  // tft.println("                                             ");
+  tftUtils.writeLine("-- Setup done --");
 
   // vTaskDelete(NULL);  // DEBUG: Stop here
 
-  const uint16_t waitForStart = 10000;
-  const uint16_t waitingDelay = 500;
-  const char *dotStr = ".";
-  for (uint16_t waiting; waiting < waitForStart; waiting += waitingDelay) {
-    Serial.print(dotStr);
-    tft.print(dotStr);
-    delay(waitingDelay);
-  }
-  const char *okStr = " OK ";
-  Serial.println(okStr);
-  tft.println(okStr);
-  delay(waitingDelay * 2);
-
   tft.fillScreen(TFT_BLACK);
-  tft.setTextPadding(10);
+
+  tftUtils.resetScroll();
 }
 
 void loop() {
@@ -140,7 +142,7 @@ void loop() {
   yp += demos.demoRelayTick(tftUtils.tft, yp);
 #endif
 
-#ifndef USE_RELAY_DEMO
+#ifdef USE_POWER_STATION
   powerStation.nextTick();
   yp += powerStation.showInfo(yp);
 #endif

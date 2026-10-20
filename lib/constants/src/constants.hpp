@@ -11,6 +11,12 @@
 #define CYAN "\033[36m"    /* Cyan */
 #define BOLD "\033[1m"     /* Bold style */
 
+// TFT Screen settings
+
+#define TFT_IS_ROTATED (bool(TFT_ROTATION % 2))
+#define TFT_SCREEN_WIDTH (TFT_IS_ROTATED ? TFT_HEIGHT : TFT_WIDTH)
+#define TFT_SCREEN_HEIGHT (!TFT_IS_ROTATED ? TFT_HEIGHT : TFT_WIDTH)
+
 // Extra TFT colors
 #define TFT_GREY 0x5AEB  // New color
 // #define TFT_BROWN 0x38E0

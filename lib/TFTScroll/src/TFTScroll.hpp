@@ -1,0 +1,125 @@
+/*
+**  Author: Aniket Biswas
+**  Github: https://github.com/xunicatt
+**
+**  Library to add Vertical text Scrolling functionality to TFT_eSPI library by
+*bodmer.
+**  TFT_eSPI: https://github.com/Bodmer/TFT_eSPI
+**
+**  Contribute to improve the library
+*/
+
+/*
+**  SEE examples for usage
+*/
+
+#ifndef _TFT_ESPI_SCROLL_H_
+#define _TFT_ESPI_SCROLL_H_
+
+#include <Arduino.h>
+#include <TFT_eSPI.h>
+
+#include <vector>
+
+#include "constants.hpp"
+
+#define TFTScroll_Version "1.0.6"
+
+// // NOTE: Hardcoded screen width in chars for the font #1 (FONT_XS) (Must be
+// replaced by `getLineWidthInChars`) #define MAX_CHARS 26
+
+/*
+**  Error Handeling
+**  Returns NO_ERROR if everthing is ok
+*/
+enum TFTScroll_Error {
+  NO_ERROR,
+  ERROR_NO_TFT,
+  ERROR_SPRITE_MEMORY_ALLOCATION_FAILED
+};
+
+/*
+** TFTScroll
+** Enables text scrolling
+*/
+
+class TFTScroll {
+ public:
+  static const String spaces;
+
+  // Constructor
+  TFTScroll();
+  // Destructor
+  ~TFTScroll();
+
+  /*
+  ** @name init
+  ** @brief Initializes the class with neccessary datas.
+  ** @brief It is recommended to use default 1-bit color_depth [B/W] for
+  *flickerless screen refresh & low ram usage
+  ** @param TFT_eSPI*
+  ** @param text_font
+  ** @param color_depth
+  */
+  TFTScroll_Error init(TFT_eSPI *tft_espi, uint16_t text_font,
+                       uint8_t color_depth = 1);
+
+  /*
+  ** @name write
+  ** @brief Writes a line to the screen while scrolling.
+  ** @param text
+  */
+  TFTScroll_Error write(String text = "");
+
+  /*
+  ** @name setColor
+  ** @brief Sets an background and foreground color
+  ** @brief It is recommended to use default 1-bit color settings [B/W] for
+  *flickerless screen refresh & low ram usage.
+  ** @brief Color depth must be set accordingly.
+  ** @param background_color
+  ** @param foreground_color
+  */
+  void setColor(uint16_t background_color, uint16_t forground_color);
+
+  /*
+  ** @name reset
+  ** @brief Resets configs, init must be called
+  */
+  void reset();
+
+  int getCursorLine();
+
+  size_t getFontHeight() { return tft->fontHeight(); }
+  size_t getFontWidth() {
+    // Considering a monospace font
+    return tft->textWidth("A");
+  }
+
+  size_t getLinesCount() {
+    const size_t fontHeight = this->getFontHeight();
+    return height / fontHeight;
+  }
+
+  size_t getLineWidthInChars() {
+    // Considering a monospace font
+    const size_t fontWidth = getFontWidth();
+    return width / fontWidth;
+  }
+
+  // private:
+
+  // Scrolls the screen by shifting all lines by -1
+  void shift(int text_width);
+
+  int width, height;  // screen size
+  int font_height, cursor;
+
+  // stroing the lines in display
+  std::vector<String> buffer;
+  TFT_eSPI *tft;        // tft_espi display driver
+  TFT_eSprite *sprite;  // sprite for flicker less update
+  uint16_t bg_color;
+};
+
+#endif

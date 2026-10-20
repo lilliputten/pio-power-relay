@@ -1,8 +1,8 @@
 #ifndef DataFiles_DEFINED
 #define DataFiles_DEFINED
 
-// #define USE_SD 1 // Use SD Card
-#define USE_LFS 1  // Use LittleFS
+#define USE_LFS  // Use LittleFS
+// #define USE_SD // Use SD Card
 
 #include <Arduino.h>
 
