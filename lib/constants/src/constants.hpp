@@ -26,10 +26,11 @@
 // TFT Fonts
 
 #define TFont uint8_t
+#define TColor uint32_t
 
 // Rows count depends on line height, see below, in range 12-16
 
-#define FONT_XS 1  // 26x16 ()
+#define FONT_XS 1  // 26x16
 #define FONT_XS_SIZE 11
 #define FONT_SM 2  // 20x8
 #define FONT_SM_SIZE 16

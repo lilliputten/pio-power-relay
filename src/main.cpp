@@ -2,9 +2,9 @@
                          // initialzation for some reason. (TODO: To investigate
                          // the issue?)
 
+#define USE_POWER_STATION
 // #define USE_WIFI_UTILS
 // #define USE_WWW_SERVER
-// #define USE_POWER_STATION
 // #define SHOW_TEMP_SENSOR_DEMO
 
 // #define USE_DATA_FILES_DEMO
@@ -107,6 +107,7 @@ void setup() {
   wiFiUtils.initWiFi();
 #endif
 
+  // WWWServer
 #ifdef USE_WWW_SERVER
 #ifdef USE_POWER_STATION
   wwwServer.setPowerStation(&powerStation);
@@ -118,8 +119,16 @@ void setup() {
   wwwServer.startServer();
 #endif
 
+  // InfoScreens
+#ifdef USE_POWER_STATION
+  infoScreens.setPowerStation(&powerStation);
+#endif
+#ifdef USE_TEMP_SENSOR
+  infoScreens.setTempSensor(&tempSensor);
+#endif
   infoScreens.initScreens();
 
+  // Done
   tftUtils.writeLine("Setup done");
 
   tftUtils.delayProgressBar(5000, 500, "OK");
