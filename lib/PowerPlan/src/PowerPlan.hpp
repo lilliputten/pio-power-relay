@@ -35,7 +35,7 @@ static const PowerPlanSlot defaultSlots[] = {
 
 class PowerPlan {
  private:
-  TFT_eSPI* tft = nullptr;
+  TFTUtils* tftUtils = nullptr;
   TPowerPlanId id = 0;
   TChannelNo channel = 0;
 
@@ -174,7 +174,7 @@ class PowerPlan {
 
   // Display current status on a tft screen
   int showInfo(int yp) const {
-    auto tft = this->tft;
+    auto tft = this->tftUtils ? &tftUtils->tft : nullptr;
     if (!tft) return 0;
 
     int xp = 10;
@@ -307,17 +307,16 @@ class PowerPlan {
   }
 
   void initPowerPlan() {
-    auto tft = this->tft;
-
-    Serial.printf("-- Power Plan %d Initialization started --\n", this->id);
-    if (tft) tft->printf("Power plan %d\n", this->id);
+    if (tftUtils)
+      tftUtils->writeLine("Starting Power Plan " + String(this->id) + "...");
 
     this->loadSlots();
 
     // DEBUG
     int rowNo = 0;
-    Serial.printf("Loaded %d slots:\n", this->slots.size());
-    if (tft) tft->printf("Loaded %d slots:\n", this->slots.size());
+    // Serial.printf("Loaded %d slots:\n", this->slots.size());
+    if (tftUtils)
+      tftUtils->writeLine("Loaded " + String(this->slots.size()) + " slots:");
     for (size_t i = 0; i < this->slots.size(); i++) {
       const PowerPlanSlot& slot = this->slots[i];
       char charBuf[50];
@@ -327,12 +326,7 @@ class PowerPlan {
       }
       snprintf(charBuf, sizeof(charBuf), "%d: %s %s", ++rowNo, timeStr.c_str(),
                slot.textId ? "(" + slot.textId + ")" : "--");
-      Serial.print(charBuf);
-      Serial.println();
-      if (tft) {
-        tft->print(charBuf);
-        tft->println();
-      }
+      if (tftUtils) tftUtils->writeLine(String(charBuf));
     }
 
     if (this->slots.size() <= 1) {
@@ -341,14 +335,12 @@ class PowerPlan {
     }
 
     this->resetTickingLoop();
-
-    Serial.printf("-- Power Plan %d Initialization done --\n", this->id);
   }
 
   // Constructor
   PowerPlan(TPowerPlanId id, TChannelNo channel, TFTUtils* tftUtils = nullptr) {
     if (tftUtils) {
-      this->tft = &(tftUtils->tft);
+      this->tftUtils = tftUtils;
     }
     this->id = id;
     this->channel = channel;

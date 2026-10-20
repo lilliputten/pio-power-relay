@@ -15,7 +15,9 @@
 class WWWServer {
  private:
   TServer server;
-  TFT_eSPI* tft = nullptr;
+
+  // TFT_eSPI* tft = nullptr;
+  TFTUtils* tftUtils = nullptr;
 
   // Referenced objects
   PowerStation* powerStation = nullptr;
@@ -26,13 +28,13 @@ class WWWServer {
  public:
   void startServer() { this->server.begin(); }
 
-  TServer& getServer();
+  TServer& getServer() { return this->server; }
 
   void setPowerStation(PowerStation* ref) { this->powerStation = ref; }
   void setTempSensor(TempSensor* ref) { this->tempSensor = ref; }
 
   void initServer() {
-    Serial.println("-- WWW Server Initialization started --");
+    if (tftUtils) tftUtils->writeLine("Starting WWW Server...");
 
     if (!this->powerStation) {
       Serial.println(
@@ -45,13 +47,11 @@ class WWWServer {
     }
 
     this->initRoutes();
-
-    Serial.println("-- WWW Server Initialization done --");
   }
 
   WWWServer(TFTUtils* tftUtils = nullptr, uint16_t port = 80) : server(port) {
     if (tftUtils) {
-      this->tft = &tftUtils->getTFT();
+      this->tftUtils = tftUtils;
     }
   }
 };

@@ -1,7 +1,7 @@
 #ifndef TFTUtils_DEFINED
 #define TFTUtils_DEFINED
 
-// #define USE_TFT_SCROLL
+#define USE_TFT_SCROLL
 // NOTE: It requires a proper order of includes
 
 // #define TFTUtils_DEBUG
@@ -18,7 +18,7 @@
 #include "constants.hpp"
 
 #define FONT_XS \
-  1  // 26x10-12 (rows count depends on line height, see below, in range 12-10)
+  1  // 26x10-16 (rows count depends on line height, see below, in range 12-16)
 #define FONT_XS_SIZE 11
 #define FONT_SM 2  // 20x8
 #define FONT_SM_SIZE 16
@@ -127,8 +127,10 @@ class TFTUtils {
   //   return this->scrollCount;
   // }
 
-  void writeLine(const String str = "") {
-    Serial.println(str);
+  void writeLine(const String str = "", const bool onlyTTF = false) {
+    if (!onlyTTF) {
+      Serial.println(str);
+    }
 #ifdef USE_TFT_SCROLL
     if (!this->scrollInited) {
       if (!this->initScroll()) {

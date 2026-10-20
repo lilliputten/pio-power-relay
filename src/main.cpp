@@ -12,20 +12,22 @@
 #endif
 
 #include "DataFiles.hpp"
-#include "Demos.hpp"
 #include "TFTUtils.hpp"
+TFTUtils tftUtils;
+
+// NOTE: Required for the normal LittleFS initialization (WTF?)
+#ifdef USE_TEMP_SENSOR
+#include "TempSensor.hpp"
+TempSensor tempSensor(&tftUtils);
+#endif
+
+#include "Demos.hpp"
 
 Demos demos;
-TFTUtils tftUtils;
 
 #ifdef USE_POWER_STATION
 #include "PowerStation.hpp"
 PowerStation powerStation(&tftUtils);
-#endif
-
-#ifdef USE_TEMP_SENSOR
-#include "TempSensor.hpp"
-TempSensor tempSensor(&tftUtils);
 #endif
 
 #ifdef USE_WIFI_UTILS
@@ -78,22 +80,22 @@ void setup() {
 
   // vTaskDelete(NULL);  // DEBUG: Stop here
 
-  DataFiles::initDataFiles();
-
-#ifdef USE_RELAY_DEMO
-  demos.demoRelayInit();
-#endif
-
 #ifdef USE_TEMP_SENSOR
   tempSensor.initTempSensor();
 #endif
 
+  // NOTE: Beware of some components initialization sequence: it can stuck if
+  // DataFiles has been initalized before tempSensor
+  DataFiles::initDataFiles();
 #ifdef USE_DATA_FILES_DEMO
   demos.demoDataFiles();
 #endif
 
 #ifdef USE_POWER_STATION
   powerStation.initPowerStation();
+#endif
+#ifdef USE_RELAY_DEMO
+  demos.demoRelayInit();
 #endif
 
 #ifdef USE_WIFI_UTILS
@@ -111,13 +113,16 @@ void setup() {
   wwwServer.startServer();
 #endif
 
-  tftUtils.writeLine("-- Setup done --");
+  tftUtils.writeLine("Setup done");
+
+  tftUtils.delayProgressBar(5000, 500, "OK");
 
   // vTaskDelete(NULL);  // DEBUG: Stop here
 
-  tft.fillScreen(TFT_BLACK);
-
   tftUtils.resetScroll();
+
+  tft.fillScreen(TFT_BLACK);
+  tft.setCursor(0, 0);
 }
 
 void loop() {

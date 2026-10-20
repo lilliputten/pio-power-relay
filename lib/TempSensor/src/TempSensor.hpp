@@ -13,7 +13,7 @@ static OneWire oneWire(TEMP_SENSOR_CH);
 
 class TempSensor {
  private:
-  TFT_eSPI* tft = nullptr;
+  TFTUtils* tftUtils = nullptr;
 
   // Dallas Temperature sensor
   DallasTemperature sensors;
@@ -27,22 +27,14 @@ class TempSensor {
 
   // Display current status on a tft screen
   int showInfo(int yp) {
-    auto tft = this->tft;
+    auto tft = this->tftUtils ? &tftUtils->tft : nullptr;
     if (!tft) return 0;
 
     int xp = 10;
     // int font1 = FONT_SM;
-    int font2 = FONT_MD;
     // int fh = tft->fontHeight(font1);
+    int font2 = FONT_MD;
     int fh2 = tft->fontHeight(font2);
-    // int yp2 = yp + fh;
-
-    // tft->setTextSize(1);
-
-    // tft->setTextColor(TFT_GREEN, TFT_BLACK);
-    // tft->setCursor(xp, yp, font1);
-
-    // long rand = random(10, 99);
 
     const float temperatureC = this->getTemperature();
 
@@ -58,21 +50,16 @@ class TempSensor {
   }
 
   void initTempSensor() {
-    auto tft = this->tft;
-
-    Serial.printf("-- Temp Sensor Initialization started --\n");
-    if (tft) tft->printf("Temp Sensor\n");
+    if (tftUtils) tftUtils->writeLine("Starting Temp Sensor...");
 
     // Start the DS18B20 sensor
     this->sensors.begin();
-
-    Serial.printf("-- Temp Sensor Initialization done --\n");
   }
 
   // Constructor
   TempSensor(TFTUtils* tftUtils = nullptr) : sensors(&oneWire) {
     if (tftUtils) {
-      this->tft = &(tftUtils->tft);
+      this->tftUtils = tftUtils;
     }
   }
 };

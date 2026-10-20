@@ -22,10 +22,10 @@ static bool __findNetwork(const TStrings& ssids, const String& ssid) {
 }
 
 static bool __tryToConnect(const String& ssid, const String& pwd,
-                           TFT_eSPI* tft) {
+                           TFTUtils* tftUtils) {
   unsigned long startAttemptTime = millis();
 
-  Serial.printf("Started connection to network %s", ssid);
+  if (tftUtils) tftUtils->writeLine("Trying " + ssid + "...");
 
   WiFi.begin(ssid, pwd);
 
@@ -46,9 +46,9 @@ static bool __tryToConnect(const String& ssid, const String& pwd,
 
   Serial.printf("\nConnected to %s", ssid);
   auto localIP = WiFi.localIP().toString();
-  Serial.printf("IP Address: %s\n", localIP);
-  if (tft) tft->printf("SSID: %s\n", ssid);
-  tft->printf("IP: %s\n", localIP);
+  // Serial.printf("IP Address: %s\n", localIP);
+  // if (tftUtils) tftUtils->writeLine("SSID: " + ssid);
+  if (tftUtils) tftUtils->writeLine("OK IP: " + localIP);
 
   delay(2000);
 
@@ -56,18 +56,14 @@ static bool __tryToConnect(const String& ssid, const String& pwd,
 }
 
 bool WiFiUtils::connectWiFi(const T2DStrings& configs, const TStrings& ssids) {
-  auto tft = this->tft;
-  if (tft) tft->println("Connecting to WiFi...");
+  if (tftUtils) tftUtils->writeLine("Connecting to WiFi...");
 
-  Serial.println("-- WiFi Connection started --");
   if (!configs.size()) {
-    Serial.println("-- WiFi Connection failed: no configs passed --");
-    if (tft) tft->println("No configs");
+    if (tftUtils) tftUtils->writeLine("No configs");
     return false;
   }
   if (!ssids.size()) {
-    Serial.println("-- WiFi Connection failed: no ssids passed --");
-    if (tft) tft->println("No ssids");
+    if (tftUtils) tftUtils->writeLine("No SSIDs");
     return false;
   }
 
@@ -84,7 +80,7 @@ bool WiFiUtils::connectWiFi(const T2DStrings& configs, const TStrings& ssids) {
       // Serial.printf("%s %s: %s\n", isFound ? "+" : "-", ssid, pwd);
       if (isFound) {
         // Try to connect to the network
-        if (__tryToConnect(ssid, pwd, tft)) {
+        if (__tryToConnect(ssid, pwd, tftUtils)) {
           connectedToNetwork = true;
           break;
         }
@@ -96,8 +92,6 @@ bool WiFiUtils::connectWiFi(const T2DStrings& configs, const TStrings& ssids) {
   } catch (...) {
     Serial.println("connectWiFi: Unknown exception");
   }
-
-  Serial.println("-- WiFi Connection finished --");
 
   return connectedToNetwork;
 }

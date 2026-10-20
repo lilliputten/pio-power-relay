@@ -8,7 +8,8 @@
 
 class WiFiUtils {
  private:
-  TFT_eSPI* tft = nullptr;
+  TFTUtils* tftUtils = nullptr;
+  // TFT_eSPI* tft = nullptr;
 
  public:
   void initWiFi();
@@ -20,7 +21,8 @@ class WiFiUtils {
   WiFiUtils(TFTUtils* tftUtils = nullptr) {
     // Constructor
     if (tftUtils) {
-      this->tft = &tftUtils->getTFT();
+      this->tftUtils = tftUtils;
+      // this->tft = &tftUtils->getTFT();
     }
   }
 };

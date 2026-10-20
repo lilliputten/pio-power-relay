@@ -8,10 +8,9 @@ T2DStrings WiFiUtils::loadWiFiConfigs() {
 #error "WIFI_CONFIGS_FILE is undefined"
 #endif
 
-  auto tft = this->tft;
-  if (tft) tft->println("Loading WiFi configs...");
+  // Serial.println("-- Loading WiFi configs started --");
 
-  Serial.println("-- Loading WiFi configs started --");
+  if (tftUtils) tftUtils->writeLine("Loading WiFi configs...");
 
   T2DStrings data;
 
@@ -33,10 +32,10 @@ T2DStrings WiFiUtils::loadWiFiConfigs() {
 
     DataFiles::printDataToSerial(data);
 
-    if (tft) {
+    if (tftUtils) {
       int rowNo = 0;
       for (const auto& row : data) {
-        tft->printf("%2d %s\n", ++rowNo, row[0]);
+        tftUtils->writeLine(String(++rowNo) + ": " + row[0]);
       }
     }
 
@@ -46,7 +45,7 @@ T2DStrings WiFiUtils::loadWiFiConfigs() {
     Serial.println("Unknown exception");
   }
 
-  Serial.println("-- Loading WiFi configs finished --");
+  // Serial.println("-- Loading WiFi configs finished --");
 
   return data;
 }

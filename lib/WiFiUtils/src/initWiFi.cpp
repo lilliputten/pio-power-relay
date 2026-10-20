@@ -1,10 +1,7 @@
 #include "WiFiUtils.hpp"
 
 void WiFiUtils::initWiFi() {
-  auto tft = this->tft;
-  if (tft) tft->println("Initializing WiFi...");
-
-  Serial.println("-- WiFi Initialization started --");
+  if (tftUtils) tftUtils->writeLine("Initializing WiFi...");
 
   WiFi.mode(WIFI_AP_STA);
   WiFi.disconnect();
@@ -21,11 +18,4 @@ void WiFiUtils::initWiFi() {
   this->startAccessPoint(WIFI_AP_SSID, WIFI_AP_PWD);
 #endif
 #endif
-
-  // const IPAddress localIP =  WiFi.localIP();
-  // const IPAddress accessPointIP =  WiFi.softAPIP();
-
-  // delay(100);
-
-  Serial.println("-- WiFi Initialization finished --");
 }

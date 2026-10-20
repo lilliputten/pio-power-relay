@@ -36,8 +36,8 @@ static const size_t channelsCount = sizeof(channels) / sizeof(channels[0]);
 class PowerStation {
  private:
   bool inited = false;
+
   TFTUtils* tftUtils = nullptr;  // NOTE: Kept only for `PowerPlan` constructor
-  TFT_eSPI* tft = nullptr;
 
   // List of plan items
   TPowerPlans plans;
@@ -49,7 +49,7 @@ class PowerStation {
   int showInfo(int yp) const {
     if (!this->inited) return 0;
 
-    auto tft = this->tft;
+    auto tft = this->tftUtils ? &tftUtils->tft : nullptr;
     if (!tft) return 0;
 
     int count = 0;
@@ -77,10 +77,7 @@ class PowerStation {
   }
 
   bool initPowerStation() {
-    auto tft = this->tft;
-
-    Serial.println("-- Power Station Initialization started --");
-    if (tft) tft->printf("Power Station channles: %d\n", POWER_CHANNELS_COUNT);
+    if (tftUtils) tftUtils->writeLine("Starting Power Station...");
 
     // DEBUG:
     Serial.printf("[PowerStation]: Used channels (POWER_CHANNELS_COUNT): %d\n",
@@ -90,16 +87,13 @@ class PowerStation {
 
     // Insufficient amount of defined channels?
     if (channelsCount < POWER_CHANNELS_COUNT) {
-      const String errStr =
-          "Insufficient amount of defined channels (" + String(channelsCount) +
-          "), whilst required at least " + String(POWER_CHANNELS_COUNT) +
-          " (define neccessary RELAY_CHx constants).\n";
+      const String errCode = "Insufficient amount of defined channels";
+      const String errStr = errCode + " (" + String(channelsCount) +
+                            "), whilst required at least " +
+                            String(POWER_CHANNELS_COUNT) +
+                            " (define neccessary RELAY_CHx constants).\n";
       Serial.print(RED + errStr + RESET);
-      if (tft) {
-        tft->setTextColor(TFT_RED, TFT_BLACK);
-        tft->print(errStr);
-        tft->setTextColor(TFT_WHITE, TFT_BLACK);
-      }
+      if (tftUtils) tftUtils->writeLine(errCode, true);
       return false;
     }
 
@@ -117,8 +111,6 @@ class PowerStation {
       this->plans.push_back(plan);
     }
 
-    Serial.println("-- Power Station Initialization done --");
-
     this->inited = true;
     return true;
   }
@@ -127,7 +119,6 @@ class PowerStation {
   PowerStation(TFTUtils* tftUtils = nullptr) {
     if (tftUtils) {
       this->tftUtils = tftUtils;
-      this->tft = &tftUtils->tft;
     }
   }
 
