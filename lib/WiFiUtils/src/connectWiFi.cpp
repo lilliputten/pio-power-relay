@@ -44,14 +44,6 @@ static bool __tryToConnect(const String& ssid, const String& pwd,
     return false;
   }
 
-  Serial.printf("\nConnected to %s", ssid);
-  auto localIP = WiFi.localIP().toString();
-  // Serial.printf("IP Address: %s\n", localIP);
-  // if (tftUtils) tftUtils->writeLine("SSID: " + ssid);
-  if (tftUtils) tftUtils->writeLine("OK IP: " + localIP);
-
-  delay(2000);
-
   return true;
 }
 
@@ -82,6 +74,14 @@ bool WiFiUtils::connectWiFi(const T2DStrings& configs, const TStrings& ssids) {
         // Try to connect to the network
         if (__tryToConnect(ssid, pwd, tftUtils)) {
           connectedToNetwork = true;
+          Serial.printf("\nConnected to %s\n", ssid);
+          this->localSSID = ssid;
+          const auto localIP = WiFi.localIP();
+          this->localIPAddr = localIP.toString();
+          // Serial.printf("IP Address: %s\n", localIP);
+          // if (tftUtils) tftUtils->writeLine("SSID: " + ssid);
+          if (tftUtils) tftUtils->writeLine("OK IP: " + this->localIPAddr);
+          // delay(2000);
           break;
         }
       }
@@ -91,6 +91,10 @@ bool WiFiUtils::connectWiFi(const T2DStrings& configs, const TStrings& ssids) {
     Serial.printf("connectWiFi: Exception: %s\n", e.what());
   } catch (...) {
     Serial.println("connectWiFi: Unknown exception");
+  }
+
+  if (connectedToNetwork) {
+    delay(2000);
   }
 
   return connectedToNetwork;

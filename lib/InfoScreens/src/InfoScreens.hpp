@@ -5,9 +5,18 @@
 
 #include <vector>
 
+#include "TFTUtils.hpp"
+
+#ifdef USE_POWER_STATION
 #include "PowerPlan.hpp"
 #include "PowerStation.hpp"
+#endif
+#ifdef USE_TEMP_SENSOR
 #include "TempSensor.hpp"
+#endif
+#ifdef USE_WIFI_UTILS
+#include "WiFiUtils.hpp"
+#endif
 #include "TimeUtils.hpp"
 #include "constants.hpp"
 // TODO: Add other modules
@@ -26,11 +35,16 @@
 #define FOOTER_Y_OFFSET 3
 
 #define DEFAULT_SHOW_TIME 5000
-#define DEFAULT_UPDATE_TIME 2000
+#define DEFAULT_UPDATE_TIME 1000
 
+/** Core screen types. Don't forget to add to the used screens list
+ * `basicScreens` and translate the code to the name in the function
+ * `getScreenTypeName`. */
 enum TScreenType {
   DEMO,
   TEMP_SENSOR,
+  WIFI_NETWORK,
+  WIFI_ACCESS_POINT,
   POWER_CHANNEL,
 };
 static TScreenType defaultScreen = DEMO;
@@ -42,12 +56,20 @@ struct TShowScreen {
   // Update this screen after this time (millis), overrides `defaultUpdateTime`
   TTick updateTime;
 };
-#define DEFAULT_SHOW_SCREEN_PARAMS 0, 0
 #define TShowScreens std::vector<TShowScreen>
 
+// Default screen params (set showTime and updateTime if needed)
+#define DEFAULT_SHOW_SCREEN_PARAMS 0, 0
+
 static const TShowScreen basicScreens[] = {
-    {DEMO, DEFAULT_SHOW_SCREEN_PARAMS},
+// {DEMO, DEFAULT_SHOW_SCREEN_PARAMS},
+#ifdef USE_TEMP_SENSOR
     {TEMP_SENSOR, DEFAULT_SHOW_SCREEN_PARAMS},
+#endif
+#ifdef USE_WIFI_UTILS
+    {WIFI_NETWORK, DEFAULT_SHOW_SCREEN_PARAMS},
+    {WIFI_ACCESS_POINT, DEFAULT_SHOW_SCREEN_PARAMS},
+#endif
 };
 static const size_t basicScreensCount =
     sizeof(basicScreens) / sizeof(TShowScreen);
@@ -59,13 +81,14 @@ static String getScreenTypeName(TScreenType type) {
   switch (type) {
     case DEMO:
       return "DEMO";
-      break;
     case TEMP_SENSOR:
       return "TEMP_SENSOR";
-      break;
+    case WIFI_NETWORK:
+      return "WIFI_NETWORK";
+    case WIFI_ACCESS_POINT:
+      return "WIFI_ACCESS_POINT";
     case POWER_CHANNEL:
       return "POWER_CHANNEL";
-      break;
   };
   return "UNKNOWN";
 }
@@ -106,8 +129,15 @@ class InfoScreens {
   TFT_eSPI* tft = nullptr;
 
   // Involved objects' references
+#ifdef USE_POWER_STATION
   PowerStation* powerStation = nullptr;
+#endif
+#ifdef USE_TEMP_SENSOR
   TempSensor* tempSensor = nullptr;
+#endif
+#ifdef USE_WIFI_UTILS
+  WiFiUtils* wiFiUtils = nullptr;
+#endif
 
  private:
   int getPowerPlanIdx() {
@@ -146,9 +176,10 @@ class InfoScreens {
     tft->setTextColor(TFT_MAGENTA);
 
     tft->setCursor(xp, yp, FONT_MD);
-    snprintf(strBuf, sizeof(strBuf), "Screen %d\n", (int)type + 1);
+    snprintf(strBuf, sizeof(strBuf), "Screen #%d\n",
+             this->currentScreenIdx /* , (int)type + 1 */);
     this->clearLine();
-    this->print(strBuf, true);
+    tft->print(strBuf);
     yp += tft->fontHeight();
 
     const TTick timeDiff = this->ticks - this->ticksStarted;
@@ -162,7 +193,7 @@ class InfoScreens {
     tft->setCursor(xp, yp, FONT_SM);
     snprintf(strBuf, sizeof(strBuf), "%s\n", name.c_str());
     this->clearLine();
-    this->print(strBuf, true);
+    tft->print(strBuf);
     yp += tft->fontHeight();
 
     tft->setTextColor(TFT_PINK);
@@ -172,26 +203,283 @@ class InfoScreens {
       snprintf(strBuf, sizeof(strBuf), "Power plan: %d\n",
                this->powerPlanIdx + 1);
       this->clearLine();
-      this->print(strBuf, true);
+      tft->print(strBuf);
       yp += tft->fontHeight();
     }
 
     tft->setCursor(xp, yp, FONT_XS);
     snprintf(strBuf, sizeof(strBuf), "Loop: %d\n", this->currentLoop);
     this->clearLine();
-    this->print(strBuf, true);
+    tft->print(strBuf);
     yp += tft->fontHeight();
 
     tft->setCursor(xp, yp, FONT_XS);
     snprintf(strBuf, sizeof(strBuf), "Time: %s\n", timeStr.c_str());
     this->clearLine();
-    this->print(strBuf, true);
+    tft->print(strBuf);
     yp += tft->fontHeight();
 
     if (full) {
       this->clearRestLines();
     }
   }
+
+#ifdef USE_TEMP_SENSOR
+  void drawTempSensorScreen(const bool full = false) {
+    if (!tft) return;
+
+    // Get object reference
+    if (!this->tempSensor) {
+      return this->drawDefaultScreen(full);
+    }
+
+    // Get data
+    const float tempC = this->tempSensor->getTemperature();
+
+    const TPos xp = X_OFFSET;
+    TPos yp = this->screenStartY;
+
+    // Get screen
+    const TShowScreen& scr = this->screens[this->currentScreenIdx];
+    const TScreenType type = scr.type;
+    const String name = this->getScreenName();  // TODO: Get plan name?
+
+    tft->setTextColor(TFT_MAGENTA);
+
+    // Display screen name
+    tft->setCursor(xp, yp, FONT_SM);
+    this->clearLine();
+    tft->println(name);
+    yp += tft->fontHeight();
+
+    // Display temperature
+    tft->setTextColor(TFT_GREEN);
+
+    tft->setCursor(xp, yp, FONT_MD);
+    this->clearLine();
+    tft->printf("%.1f`C\n", tempC);
+    yp += tft->fontHeight();
+
+    // Clean
+    if (full) {
+      this->clearRestLines();
+    }
+  }
+#endif
+
+#ifdef USE_WIFI_UTILS
+  void drawWiFiNetworkScreen(const bool full = false) {
+    if (!tft) return;
+
+    // Get object reference
+    if (!this->wiFiUtils) {
+      return this->drawDefaultScreen(full);
+    }
+
+    // Get data
+    const String ssid = wiFiUtils->getWiFiClientSSID();
+    const String ip = wiFiUtils->getWiFiClientIP();
+    const bool isConnected = ssid && ip;
+
+    const TPos xp = X_OFFSET;
+    TPos yp = this->screenStartY;
+
+    // Get screen
+    const TShowScreen& scr = this->screens[this->currentScreenIdx];
+    const TScreenType type = scr.type;
+    const String name = this->getScreenName();  // TODO: Get plan name?
+
+    tft->setTextColor(TFT_MAGENTA);
+
+    // Display screen name
+    tft->setCursor(xp, yp, FONT_SM);
+    this->clearLine();
+    tft->println(name);
+    yp += tft->fontHeight();
+
+    // Display status/error
+    tft->setTextColor(isConnected ? TFT_GREEN : TFT_BLUE);  // green/red!
+
+    tft->setCursor(xp, yp, FONT_SM);
+    this->clearLine();
+    tft->println(isConnected ? "Connected" : "Not connected");
+    yp += tft->fontHeight();
+
+    // Display data
+    tft->setTextColor(TFT_PINK);
+
+    tft->setCursor(xp, yp, FONT_XS);
+    this->clearLine();
+    tft->printf("SSID: %s\n", ssid.c_str());
+    yp += tft->fontHeight();
+
+    tft->setCursor(xp, yp);
+    this->clearLine();
+    tft->printf("IP: %s\n", ip.c_str());
+    yp += tft->fontHeight();
+
+    // Clean
+    if (full) {
+      this->clearRestLines();
+    }
+  }
+
+  void drawAccessPointScreen(const bool full = false) {
+    if (!tft) return;
+
+    // Get object reference
+    if (!this->wiFiUtils) {
+      return this->drawDefaultScreen(full);
+    }
+
+    // Get data
+
+    const String ssid = this->wiFiUtils->getWiFiAPSSID();
+    const String pwd = this->wiFiUtils->getWiFiAPPwd();
+    const String ip = this->wiFiUtils->getWiFiAPIP();
+    const bool isStarted = ssid && ip && pwd;
+
+    const TPos xp = X_OFFSET;
+    TPos yp = this->screenStartY;
+
+    // Get screen
+    const TShowScreen& scr = this->screens[this->currentScreenIdx];
+    const TScreenType type = scr.type;
+    const String name = this->getScreenName();  // TODO: Get plan name?
+
+    tft->setTextColor(TFT_MAGENTA);
+
+    // Display screen name
+    tft->setCursor(xp, yp, FONT_SM);
+    this->clearLine();
+    tft->println(name);
+    yp += tft->fontHeight();
+
+    // Display status/error
+    tft->setTextColor(isStarted ? TFT_GREEN : TFT_BLUE);  // green/red!
+
+    tft->setCursor(xp, yp, FONT_SM);
+    this->clearLine();
+    tft->println(isStarted ? "Started" : "Not started");
+    yp += tft->fontHeight();
+
+    // Display data
+    tft->setTextColor(TFT_PINK);
+
+    tft->setCursor(xp, yp, FONT_XS);
+    this->clearLine();
+    tft->printf("SSID: %s\n", ssid.c_str());
+    yp += tft->fontHeight();
+
+    tft->setCursor(xp, yp, FONT_XS);
+    this->clearLine();
+    tft->printf("Password: %s\n", pwd.c_str());
+    yp += tft->fontHeight();
+
+    tft->setCursor(xp, yp, FONT_XS);
+    this->clearLine();
+    tft->printf("IP: %s\n", ip.c_str());
+    yp += tft->fontHeight();
+
+    // Clean
+    if (full) {
+      this->clearRestLines();
+    }
+  }
+#endif
+
+#ifdef USE_POWER_STATION
+  void drawPowerStationScreen(const bool full = false) {
+    if (!tft) return;
+
+    // Get object reference
+    if (!this->powerStation || this->powerPlanIdx < 0) {
+      return this->drawDefaultScreen(full);
+    }
+    PowerPlan* plan = this->powerStation->getPowerPlanByIdx(this->powerPlanIdx);
+    if (!plan) {
+      Serial.println(RED "Not found proper power plan for powerPlanIdx=" +
+                     String(this->powerPlanIdx) + RESET);
+      return;
+    }
+
+    const PowerPlanStatus status = plan->getStatus();
+
+    /* status properties:
+     *
+     * - TPowerPlanId id
+     * - TChannelNo channel
+     * - unsigned int loopsCount
+     * - bool initalState
+     * + bool state
+     * + TTick ticksDiff
+     * - TTick ticks
+     * - TTick ticksStarted
+     * + size_t slotsCount
+     * + size_t slot
+     * + TTimeSec slotTimeSec
+     * - String slotTextId
+     */
+
+    char strBuf[30];
+
+    const TPos xp = X_OFFSET;
+    TPos yp = this->screenStartY;
+
+    // Get screen
+    const TShowScreen& scr = this->screens[this->currentScreenIdx];
+    const TScreenType type = scr.type;
+    const String name = this->getScreenName();  // TODO: Get plan name?
+
+    // Display screen name
+    tft->setTextColor(TFT_MAGENTA);
+    tft->setCursor(xp, yp, FONT_SM);
+    // snprintf(strBuf, sizeof(strBuf), "Screen %d\n", (int)type + 1);
+    this->clearLine();
+    tft->println(name);
+    yp += tft->fontHeight();
+
+    String diffTimeStr = TimeUtils::getSecPeriodString(status.ticksDiff / 1000);
+    String totalTimeStr = TimeUtils::getSecPeriodString(status.slotTimeSec);
+    String timeStr = diffTimeStr + " / " + totalTimeStr;
+
+    // Display state
+    tft->setTextColor(TFT_ORANGE);
+    tft->setCursor(xp, yp, FONT_SM);
+    snprintf(strBuf, sizeof(strBuf), "State: %s\n",
+             status.state ? "ON" : "OFF");
+    this->clearLine();
+    tft->print(strBuf);
+    yp += tft->fontHeight();
+
+    // Display other parameters
+    tft->setTextColor(TFT_PINK);
+
+    tft->setCursor(xp, yp, FONT_XS);
+    snprintf(strBuf, sizeof(strBuf), "Slot: %d/%d (%s)\n", status.slot,
+             status.slotsCount, status.slotTextId.c_str());
+    this->clearLine();
+    tft->print(strBuf);
+    yp += tft->fontHeight();
+
+    tft->setCursor(xp, yp, FONT_XS);
+    snprintf(strBuf, sizeof(strBuf), "Slot time: %s\n", timeStr.c_str());
+    this->clearLine();
+    tft->print(strBuf);
+    yp += tft->fontHeight();
+
+    tft->setCursor(xp, yp, FONT_XS);
+    snprintf(strBuf, sizeof(strBuf), "Plan loop: %d\n", status.loopsCount);
+    this->clearLine();
+    tft->print(strBuf);
+    yp += tft->fontHeight();
+
+    // Clean
+    if (full) {
+      this->clearRestLines();
+    }
+  }
+#endif
 
   void drawHeader() {
     if (!tft) return;
@@ -217,13 +505,13 @@ class InfoScreens {
 
     snprintf(strBuf, sizeof(strBuf), "Screen %d/%d", this->currentScreenIdx + 1,
              this->screens.size());
-    this->print(strBuf, true);
+    tft->print(strBuf);
     xp += tft->textWidth(strBuf) + 5;
 
     /* // Print tick
      * snprintf(strBuf, sizeof(strBuf), "tick %d", this->currentTick + 1);
      * tft->setCursor(xp, yp);
-     * this->print(strBuf, true);
+     * tft->print(strBuf);
      * xp += tft->textWidth(strBuf) + 5;
      */
 
@@ -240,7 +528,7 @@ class InfoScreens {
     // Serial.printf("[drawHeader] rightBoxWidth=%d\n", rightBoxWidth);
     tft->setCursor(rxp + X_OFFSET, yp);
     tft->fillRect(rxp, yp, rightBoxWidth, fontHeight, HEADER_BG_COLOR);
-    this->print(rightStr, true);
+    tft->print(rightStr);
 
     // yp += tft->fontHeight();
   }
@@ -263,7 +551,7 @@ class InfoScreens {
     if (!isOddTick) {
       tft->setCursor(xp + X_OFFSET, yp + FOOTER_Y_OFFSET);
       tft->setTextColor(FOOTER_FG_COLOR, FOOTER_BG_COLOR);
-      this->print(statusStr, true);
+      tft->print(statusStr);
     }
 
     // xp += tft->textWidth(statusStr);
@@ -271,8 +559,28 @@ class InfoScreens {
   }
 
   void redrawScreen(const bool full = false) {
-    // TODO: Detect current screen and invoke the dedicated drawing method
-    this->drawDefaultScreen(full);
+    const TShowScreen& scr = this->screens[this->currentScreenIdx];
+    const TScreenType type = scr.type;
+
+    // Detect current screen and invoke the dedicated drawing method
+    switch (type) {
+      // case DEMO:
+#ifdef USE_TEMP_SENSOR
+      case TEMP_SENSOR:
+        return this->drawTempSensorScreen(full);
+#endif
+#ifdef USE_WIFI_UTILS
+      case WIFI_NETWORK:
+        return this->drawWiFiNetworkScreen(full);
+      case WIFI_ACCESS_POINT:
+        return this->drawAccessPointScreen(full);
+#endif
+#ifdef USE_POWER_STATION
+      case POWER_CHANNEL:
+        return this->drawPowerStationScreen(full);
+#endif
+    };
+    return this->drawDefaultScreen(full);
   }
 
   void tick() {
@@ -325,8 +633,15 @@ class InfoScreens {
     this->powerPlanIdx = (int)this->currentScreenIdx - basicScreensCount;
   }
 
+#ifdef USE_POWER_STATION
   void setPowerStation(PowerStation* ref) { this->powerStation = ref; }
+#endif
+#ifdef USE_TEMP_SENSOR
   void setTempSensor(TempSensor* ref) { this->tempSensor = ref; }
+#endif
+#ifdef USE_WIFI_UTILS
+  void setWiFiUtils(WiFiUtils* ref) { this->wiFiUtils = ref; }
+#endif
 
   void clearScreen() {
     if (tft) tft->fillScreen(BG_COLOR);
@@ -362,17 +677,27 @@ class InfoScreens {
                          HEADER_Y_OFFSET * 2;
 
     // Check object references
+#ifdef USE_POWER_STATION
     if (!this->powerStation)
       Serial.println(YELLOW "[InfoScreens]: PowerStation absent!" RESET);
+#endif
+#ifdef USE_TEMP_SENSOR
     if (!this->tempSensor)
       Serial.println(YELLOW "[InfoScreens]: TempSensor absent!" RESET);
+#endif
+#ifdef USE_WIFI_UTILS
+    if (!this->wiFiUtils)
+      Serial.println(YELLOW "[InfoScreens]: WiFiUtils absent!" RESET);
+#endif
     // TODO: Check other required references
 
     // Add screens for each power plan...
+#ifdef USE_POWER_STATION
     this->screens.reserve(basicScreensCount + POWER_CHANNELS_COUNT);
     for (size_t i = 0; i < POWER_CHANNELS_COUNT; i++) {
       this->screens.push_back({POWER_CHANNEL, DEFAULT_SHOW_SCREEN_PARAMS});
     }
+#endif
 
 #ifdef InfoScreens_DEBUG
     // DEBUG
@@ -382,8 +707,7 @@ class InfoScreens {
       const TShowScreen& scr = this->screens[i];
       const TScreenType type = scr.type;
       const String name = getScreenTypeName(type);
-      Serial.printf("[InfoScreens] %-3d. Screen %d (%s)", i, type,
-                    name.c_str());
+      Serial.printf("[InfoScreens] %2d. Screen %d (%s)", i, type, name.c_str());
       // It's a power plan screen
       if (powerPlanIdx >= 0) {
         Serial.printf(" Power plan #%d", this->powerPlanIdx + 1);

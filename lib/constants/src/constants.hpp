@@ -1,7 +1,9 @@
 #ifndef constants_DEFINED
 #define constants_DEFINED
 
-// Serial colors...
+// Module usage...
+
+// Serial (terminal) colors...
 #define RESET "\033[0m"
 #define RED "\033[31m"     /* Red */
 #define GREEN "\033[32m"   /* Green */
@@ -22,6 +24,8 @@
 // Extra TFT colors
 #define TFT_GREY 0x5AEB  // New color
 // #define TFT_BROWN 0x38E0
+// Default colors should be redefined too: theere is a mess (see notations in
+// the `serial-colors.css`)
 
 // TFT Fonts
 

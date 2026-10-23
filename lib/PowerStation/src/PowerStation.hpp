@@ -1,16 +1,17 @@
 #ifndef PowerStation_DEFINED
 #define PowerStation_DEFINED
 
+#ifndef POWER_CHANNELS_COUNT
+#error \
+    "A constant POWER_CHANNELS_COUNT must be defined in order to use power station functionality!"
+#endif  // POWER_CHANNELS_COUNT isn't defined
+
 #include <ArduinoJson.h>
 
 #include <vector>
 
 #include "PowerPlan.hpp"
 #include "constants.hpp"
-
-#ifndef POWER_CHANNELS_COUNT
-#error "Constant POWER_CHANNELS_COUNT must be defined!"
-#else
 
 /** List of channel pin numbers. Each channel should correspond its own channel
  * no in the defined constant `RELAY_CHx`. */
@@ -65,6 +66,13 @@ class PowerStation {
     for (size_t i = 0; i < POWER_CHANNELS_COUNT; i++) {
       this->plans[i].nextTick();
     }
+  }
+
+  PowerPlan* getPowerPlanByIdx(size_t idx) {
+    if (idx < 0 || idx >= this->plans.size()) {
+      return nullptr;
+    }
+    return &this->plans[idx];
   }
 
   PowerPlan* findPowerPlanById(TPowerPlanId id) {
@@ -140,5 +148,4 @@ class PowerStation {
   }
 };
 
-#endif  // POWER_CHANNELS_COUNT isn't defined
 #endif  // PowerStation_DEFINED

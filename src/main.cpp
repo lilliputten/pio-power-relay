@@ -1,20 +1,18 @@
-#define USE_TEMP_SENSOR  // NOTE: It's required for correct DataFiles
-                         // initialzation for some reason. (TODO: To investigate
-                         // the issue?)
-
-#define USE_POWER_STATION
-// #define USE_WIFI_UTILS
-// #define USE_WWW_SERVER
-// #define SHOW_TEMP_SENSOR_DEMO
-
-// #define USE_DATA_FILES_DEMO
-// #define USE_RELAY_DEMO
-
-// #define SHOW_DEMO_LOOP
-
-#ifndef POWER_CHANNELS_COUNT
-#error "Constant POWER_CHANNELS_COUNT must be defined!"
-#endif
+/* See module usage constants (defined in `platformio.ini`):
+ *
+ * - USE_TEMP_SENSOR - It's required for correct DataFiles initialzation for
+ * some reason. (TODO: To investigate the issue?)
+ * - USE_POWER_STATION - Power station & power plans
+ * - USE_WIFI_UTILS - WiFi network connection and AP server
+ * - USE_WWW_SERVER - Web server
+ *
+ * UNUSED: Demos (see `Demos.hpp`)
+ *
+ * - SHOW_TEMP_SENSOR_DEMO
+ * - USE_DATA_FILES_DEMO
+ * - USE_RELAY_DEMO
+ * - SHOW_DEMO_LOOP
+ */
 
 #include "DataFiles.hpp"
 #include "TFTUtils.hpp"
@@ -126,12 +124,18 @@ void setup() {
 #ifdef USE_TEMP_SENSOR
   infoScreens.setTempSensor(&tempSensor);
 #endif
+#ifdef USE_WIFI_UTILS
+  infoScreens.setWiFiUtils(&wiFiUtils);
+#endif
+
   infoScreens.initScreens();
 
   // Done
   tftUtils.writeLine("Setup done");
 
   tftUtils.delayProgressBar(5000, 500, "OK");
+
+  infoScreens.resetLoop();
 
   // vTaskDelete(NULL);  // DEBUG: Stop here
 
@@ -174,10 +178,16 @@ void loop() {
 
   // Next loop interation
   _count++;
-#else
+#else  // Real ticks
+#ifdef USE_POWER_STATION
+  // int yp = 0;
+  powerStation.nextTick();
+  // yp += powerStation.showInfo(yp);
+#endif
   infoScreens.tick();
 #endif
 
+  // Next loop or stop
 #if defined(TICK_DELAY) && (TICK_DELAY != 0)
   // Do a delay otherwise
   delay(TICK_DELAY);
@@ -186,5 +196,5 @@ void loop() {
   Serial.println("\n-- FINISHED --");
   // while(1) yield();
   vTaskDelete(NULL);
-#endif
+#endif  // Next loop or stop
 }

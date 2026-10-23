@@ -26,6 +26,25 @@ struct PowerPlanSlot {
   String textId;
 };
 
+struct PowerPlanStatus {
+  TPowerPlanId id;  // this->id
+
+  TChannelNo channel;       // this->channel
+  unsigned int loopsCount;  // this->loops
+  bool initalState;         // this->initalState
+  bool state;               // this->state
+  TTick ticksDiff;          // this->ticks - this->ticksStarted
+  TTick ticks;              // this->ticks
+  TTick ticksStarted;       // this->ticksStarted
+
+  // unsigned int totalSlotsTimeSec;  // this->getTotalSlotsTimeSec()
+
+  size_t slotsCount;     // this->slots.size()
+  size_t slot;           // this->currentSlot
+  TTimeSec slotTimeSec;  // slot.timeSec
+  String slotTextId;     // slot.textId
+};
+
 #define TPowerPlanSlots std::vector<PowerPlanSlot>
 
 static const PowerPlanSlot defaultSlots[] = {
@@ -44,8 +63,8 @@ class PowerPlan {
   bool initalState = INITIAL_PLAN_STATE;
   bool state = INITIAL_PLAN_STATE;
   size_t currentSlot = 0;
-  unsigned long ticks = 0;
-  unsigned long ticksStarted = 0;
+  TTick ticks = 0;
+  TTick ticksStarted = 0;
 
   // List of slot items
   TPowerPlanSlots slots;
@@ -156,9 +175,10 @@ class PowerPlan {
     TChannelNo signal = this->state ? CHANNEL_ON : CHANNEL_OFF;
 #ifdef PowerPlan_DEBUG
     Serial.printf(
-        "PowerPlan updateChannelState: slot #%d channel=%d state=%s "
+        "PowerPlan updateChannelState: plan %d slot #%d channel=%d state=%s "
         "signal=%d\n",
-        this->currentSlot, this->channel, this->state ? "ON" : "OFF", signal);
+        this->id, this->currentSlot, this->channel, this->state ? "ON" : "OFF",
+        signal);
 #endif
     digitalWrite(this->channel, signal);
   }
@@ -219,9 +239,9 @@ class PowerPlan {
 
 #ifdef PowerPlan_DEBUG
     Serial.printf(
-        "PowerPlan tick: slot #%d/%d (%s) secs=%d/%d state=%s next=%s\n",
-        this->currentSlot, slotsCount, slot.textId, diffSec, slot.timeSec,
-        this->state ? "ON" : "OFF", goToNext ? "yes" : "no");
+        "PowerPlan %d tick: slot #%d/%d (%s) secs=%d/%d state=%s next=%s\n",
+        this->id, this->currentSlot, slotsCount, slot.textId, diffSec,
+        slot.timeSec, this->state ? "ON" : "OFF", goToNext ? "yes" : "no");
 #endif
 
     if (goToNext) {
@@ -250,7 +270,7 @@ class PowerPlan {
     doc["ticks"] = this->ticks;                // 0
     doc["ticksStarted"] = this->ticksStarted;  // 0
 
-    doc["totalSlotsTimeSec"] = this->getTotalSlotsTimeSec();
+    // doc["totalSlotsTimeSec"] = this->getTotalSlotsTimeSec();
 
     doc["slotsCount"] = this->slots.size();
     doc["slot"] = this->currentSlot;  // 0
@@ -259,6 +279,29 @@ class PowerPlan {
     doc["slotTextId"] = slot.textId;
 
     return doc;
+  }
+
+  PowerPlanStatus getStatus() const {
+    PowerPlanStatus status;
+    status.id = this->id;
+
+    status.channel = this->channel;          // 0
+    status.loopsCount = this->loops;         // 0
+    status.initalState = this->initalState;  // INITIAL_PLAN_STATE
+    status.state = this->state;              // INITIAL_PLAN_STATE
+    status.ticksDiff = this->ticks - this->ticksStarted;
+    status.ticks = this->ticks;                // 0
+    status.ticksStarted = this->ticksStarted;  // 0
+
+    // status.totalSlotsTimeSec = this->getTotalSlotsTimeSec();
+
+    status.slotsCount = this->slots.size();
+    status.slot = this->currentSlot;  // 0
+    const PowerPlanSlot& slot = this->slots[this->currentSlot];
+    status.slotTimeSec = slot.timeSec;
+    status.slotTextId = slot.textId;
+
+    return status;
   }
 
   unsigned int getTotalSlotsTimeSec() const {
@@ -280,7 +323,7 @@ class PowerPlan {
       obj["timeSec"] = slot.timeSec;
       obj["textId"] = slot.textId;
     }
-    doc["totalSlotsTimeSec"] = totalTimeSec;
+    // doc["totalSlotsTimeSec"] = totalTimeSec;
     // doc["totalSlotsTimeSec"] = this->getTotalSlotsTimeSec();
     return doc;
   }

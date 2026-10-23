@@ -10,9 +10,10 @@ bool WiFiUtils::startAccessPoint(const String& ssid, const String& pwd) {
   }
 
   // Serial.println("Access Point launched successfully");
-  auto accessPointIP = WiFi.softAPIP().toString();
+  const auto accessPointIP = WiFi.softAPIP();
+  this->accessPointIPAddr = accessPointIP.toString();
 
-  if (tftUtils) tftUtils->writeLine("AP IP: " + accessPointIP);
+  if (tftUtils) tftUtils->writeLine("AP IP: " + this->accessPointIPAddr);
   if (tftUtils) tftUtils->writeLine("AP SSID: " + ssid);
   if (tftUtils) tftUtils->writeLine("AP PWD: " + pwd);
 
