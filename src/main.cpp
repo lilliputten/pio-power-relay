@@ -18,15 +18,21 @@
 #include "TFTUtils.hpp"
 TFTUtils tftUtils;
 
+#ifdef USE_HW_BUTTON
+#include "HwButton.hpp"
+HwButton hwButton(&tftUtils);
+#endif
+
 // NOTE: Required for the normal LittleFS initialization (WTF?)
 #ifdef USE_TEMP_SENSOR
 #include "TempSensor.hpp"
 TempSensor tempSensor(&tftUtils);
 #endif
 
+#ifdef SHOW_DEMO_LOOP
 #include "Demos.hpp"
-
 Demos demos;
+#endif
 
 #ifdef USE_POWER_STATION
 #include "PowerStation.hpp"
@@ -47,7 +53,7 @@ WWWServer wwwServer(&tftUtils);
 InfoScreens infoScreens(&tftUtils);
 
 // Iteration count
-static unsigned long _count = 0;
+static unsigned long __count = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -83,6 +89,10 @@ void setup() {
 
   // vTaskDelete(NULL);  // DEBUG: Stop here
 
+#ifdef USE_HW_BUTTON
+  hwButton.initHwButton();
+#endif
+
 #ifdef USE_TEMP_SENSOR
   tempSensor.initTempSensor();
 #endif
@@ -90,15 +100,17 @@ void setup() {
   // NOTE: Beware of some components initialization sequence: it can stuck if
   // DataFiles has been initalized before tempSensor
   DataFiles::initDataFiles();
-#ifdef USE_DATA_FILES_DEMO
-  demos.demoDataFiles();
-#endif
-
 #ifdef USE_POWER_STATION
   powerStation.initPowerStation();
 #endif
+
+#ifdef SHOW_DEMO_LOOP
+#ifdef USE_DATA_FILES_DEMO
+  demos.demoDataFiles();
+#endif
 #ifdef USE_RELAY_DEMO
   demos.demoRelayInit();
+#endif
 #endif
 
 #ifdef USE_WIFI_UTILS
@@ -120,6 +132,9 @@ void setup() {
   // InfoScreens
 #ifdef USE_POWER_STATION
   infoScreens.setPowerStation(&powerStation);
+#endif
+#ifdef USE_HW_BUTTON
+  infoScreens.setHwButton(&hwButton);
 #endif
 #ifdef USE_TEMP_SENSOR
   infoScreens.setTempSensor(&tempSensor);
@@ -146,13 +161,13 @@ void setup() {
 }
 
 void loop() {
-#ifdef SHOW_DEMO_LOOP
+#ifdef SHOW_DEMO_LOOP  // Loop mode: Demo
   TFT_eSPI &tft = tftUtils.getTFT();
   // tft.fillScreen(TFT_BLACK);
 
   Serial.println();
 #if defined(TICK_DELAY) && (TICK_DELAY != 0)
-  Serial.println("Loop: " + String(_count));
+  Serial.println("Loop: " + String(__count));
 #endif
 
   int yp = 10;
@@ -176,16 +191,24 @@ void loop() {
   // demos.demoPrint(tftUtils.tft);
   // demos.demoFont(tftUtils.tft);
 
-  // Next loop interation
-  _count++;
-#else  // Real ticks
+#else  // Loop mode: Real ticks
+
+  // Serial.println("Real Loop: " + String(__count)); // DEBUG
+
+#ifdef USE_HW_BUTTON
+  hwButton.nextTick();
+#endif
+
 #ifdef USE_POWER_STATION
-  // int yp = 0;
   powerStation.nextTick();
-  // yp += powerStation.showInfo(yp);
 #endif
-  infoScreens.tick();
-#endif
+
+  infoScreens.nextTick();
+
+#endif  // Loop mode
+
+  // Next loop interation
+  __count++;
 
   // Next loop or stop
 #if defined(TICK_DELAY) && (TICK_DELAY != 0)

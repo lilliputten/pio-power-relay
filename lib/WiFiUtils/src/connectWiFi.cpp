@@ -25,13 +25,16 @@ static bool __tryToConnect(const String& ssid, const String& pwd,
                            TFTUtils* tftUtils) {
   unsigned long startAttemptTime = millis();
 
-  if (tftUtils) tftUtils->writeLine("Trying " + ssid + "...");
+  const String str = "Trying " + ssid + "...";
+  if (tftUtils) tftUtils->tft.print(str);
+  Serial.print(str);
 
   WiFi.begin(ssid, pwd);
 
   while (WiFi.status() != WL_CONNECTED &&
          millis() - startAttemptTime < wifiTimeout) {
     delay(500);
+    if (tftUtils) tftUtils->tft.print(".");
     Serial.print(".");
   }
 
@@ -93,9 +96,9 @@ bool WiFiUtils::connectWiFi(const T2DStrings& configs, const TStrings& ssids) {
     Serial.println("connectWiFi: Unknown exception");
   }
 
-  if (connectedToNetwork) {
-    delay(2000);
-  }
+  // if (connectedToNetwork) {
+  //   delay(2000);
+  // }
 
   return connectedToNetwork;
 }

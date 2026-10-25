@@ -30,7 +30,7 @@ T2DStrings WiFiUtils::loadWiFiConfigs() {
 #endif
     }
 
-    DataFiles::printDataToSerial(data);
+    // DataFiles::printDataToSerial(data);
 
     if (tftUtils) {
       int rowNo = 0;

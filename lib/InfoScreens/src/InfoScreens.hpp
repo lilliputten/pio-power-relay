@@ -11,12 +11,16 @@
 #include "PowerPlan.hpp"
 #include "PowerStation.hpp"
 #endif
+#ifdef USE_HW_BUTTON
+#include "HwButton.hpp"
+#endif
 #ifdef USE_TEMP_SENSOR
 #include "TempSensor.hpp"
 #endif
 #ifdef USE_WIFI_UTILS
 #include "WiFiUtils.hpp"
 #endif
+
 #include "TimeUtils.hpp"
 #include "constants.hpp"
 // TODO: Add other modules
@@ -36,6 +40,9 @@
 
 #define DEFAULT_SHOW_TIME 5000
 #define DEFAULT_UPDATE_TIME 1000
+#define MEDIUM_UPDATE_TIME 10000
+#define LONG_UPDATE_TIME 60000
+#define DEFAULT_SYSTEM_TIME 500
 
 /** Core screen types. Don't forget to add to the used screens list
  * `basicScreens` and translate the code to the name in the function
@@ -51,24 +58,24 @@ static TScreenType defaultScreen = DEMO;
 
 struct TShowScreen {
   TScreenType type;
-  // Show this screen for this time (millis), overrides `defaultShowTime`
-  TTick showTime;
   // Update this screen after this time (millis), overrides `defaultUpdateTime`
   TTick updateTime;
+  // Show this screen for this time (millis), overrides `defaultShowTime`
+  TTick showTime;
 };
 #define TShowScreens std::vector<TShowScreen>
 
-// Default screen params (set showTime and updateTime if needed)
+// Default screen params (set updateTime, showTime if needed)
 #define DEFAULT_SHOW_SCREEN_PARAMS 0, 0
 
 static const TShowScreen basicScreens[] = {
 // {DEMO, DEFAULT_SHOW_SCREEN_PARAMS},
 #ifdef USE_TEMP_SENSOR
-    {TEMP_SENSOR, DEFAULT_SHOW_SCREEN_PARAMS},
+    {TEMP_SENSOR, MEDIUM_UPDATE_TIME, 0},
 #endif
 #ifdef USE_WIFI_UTILS
-    {WIFI_NETWORK, DEFAULT_SHOW_SCREEN_PARAMS},
-    {WIFI_ACCESS_POINT, DEFAULT_SHOW_SCREEN_PARAMS},
+    {WIFI_NETWORK, LONG_UPDATE_TIME, 0},
+    {WIFI_ACCESS_POINT, LONG_UPDATE_TIME, 0},
 #endif
 };
 static const size_t basicScreensCount =
@@ -108,9 +115,15 @@ class InfoScreens {
   TTick long ticksStarted = 0;
   // Last screen update time
   TTick long ticksUpdated = 0;
+  // Last system update time
+  TTick long ticksSystem = 0;
 
   size_t currentTick = 0;
   unsigned int currentLoop = 0;
+
+  bool paused = false;
+
+  TTick lastPressed = 0;
 
   // Show each screen (if custom value hasn't been specified for the screen) for
   // this time
@@ -118,6 +131,10 @@ class InfoScreens {
   // Update each screen (if custom value hasn't been specified for the screen)
   // for this time
   TTick long defaultUpdateTime = DEFAULT_UPDATE_TIME;
+  // Do system tasks (eg, update header and footer) once in this time period
+  TTick long defaultSystemTime = DEFAULT_SYSTEM_TIME;
+
+  bool cursorState = false;
 
   // Currently displayed screen
   size_t currentScreenIdx = 0;
@@ -131,6 +148,9 @@ class InfoScreens {
   // Involved objects' references
 #ifdef USE_POWER_STATION
   PowerStation* powerStation = nullptr;
+#endif
+#ifdef USE_HW_BUTTON
+  HwButton* hwButton = nullptr;
 #endif
 #ifdef USE_TEMP_SENSOR
   TempSensor* tempSensor = nullptr;
@@ -176,8 +196,7 @@ class InfoScreens {
     tft->setTextColor(TFT_MAGENTA);
 
     tft->setCursor(xp, yp, FONT_MD);
-    snprintf(strBuf, sizeof(strBuf), "Screen #%d\n",
-             this->currentScreenIdx /* , (int)type + 1 */);
+    snprintf(strBuf, sizeof(strBuf), "Screen #%d\n", this->currentScreenIdx);
     this->clearLine();
     tft->print(strBuf);
     yp += tft->fontHeight();
@@ -520,8 +539,10 @@ class InfoScreens {
     const TTick timeDiff = this->ticks - this->ticksStarted;
     String diffTimeStr = TimeUtils::getSecPeriodString(timeDiff / 1000);
     TTick showTime = scr.showTime ? scr.showTime : this->defaultShowTime;
-    String totalTimeStr = TimeUtils::getSecPeriodString(showTime / 1000);
-    String rightStr = diffTimeStr + " / " + totalTimeStr;
+    String rightStr = this->paused
+                          ? "> " + diffTimeStr
+                          : diffTimeStr + " / " +
+                                TimeUtils::getSecPeriodString(showTime / 1000);
 
     const TPos rightBoxWidth = tft->textWidth(rightStr) + X_OFFSET * 2;
     const TPos rxp = TFT_SCREEN_WIDTH - rightBoxWidth;
@@ -547,12 +568,14 @@ class InfoScreens {
     const TPos xp = TFT_SCREEN_WIDTH - rightBoxWidth;
     tft->fillRect(xp, yp, rightBoxWidth, fontHeight + FOOTER_Y_OFFSET * 2,
                   FOOTER_BG_COLOR);
-    const auto isOddTick = this->currentTick % 2;
-    if (!isOddTick) {
+
+    // Update cursor (always show if paused)
+    if (this->cursorState || this->paused) {
       tft->setCursor(xp + X_OFFSET, yp + FOOTER_Y_OFFSET);
       tft->setTextColor(FOOTER_FG_COLOR, FOOTER_BG_COLOR);
       tft->print(statusStr);
     }
+    this->cursorState = !this->cursorState;
 
     // xp += tft->textWidth(statusStr);
     // yp += fontHeight;
@@ -583,7 +606,7 @@ class InfoScreens {
     return this->drawDefaultScreen(full);
   }
 
-  void tick() {
+  void nextTick() {
     if (!tft) return;
 
     const TTick ticks = millis();
@@ -593,10 +616,38 @@ class InfoScreens {
     TTick showTime = scr.showTime ? scr.showTime : this->defaultShowTime;
     TTick updateTime =
         scr.updateTime ? scr.updateTime : this->defaultUpdateTime;
+    TTick systemTime = this->defaultSystemTime;
 
-    const bool doNext = !showTime || ticks - this->ticksStarted >= showTime;
+    bool doNext =
+        (!showTime || ticks - this->ticksStarted >= showTime) && !this->paused;
     const bool doUpdate =
         !updateTime || ticks - this->ticksUpdated >= updateTime;
+    const bool doSystem =
+        !systemTime || ticks - this->ticksSystem >= systemTime;
+
+#ifdef USE_HW_BUTTON
+    if (this->hwButton) {
+      const TTick pressed = this->hwButton->getPressed();
+      const size_t sequentialPressesCount =
+          this->hwButton->getSequentialPresses();
+      if (pressed && pressed != this->lastPressed) {
+#ifdef InfoScreens_DEBUG
+        Serial.printf("[InfoScreens] Pressed button sequential=%d\n",
+                      sequentialPressesCount);
+#endif
+        if (sequentialPressesCount) {
+          // Force screen change by double-clicking
+          doNext = true;
+          this->paused = false;
+        } else {
+          // ...Or just pause/resume automatic screen change waiting
+          this->paused = !this->paused;
+          this->ticksStarted = ticks;
+        }
+        this->lastPressed = pressed;
+      }
+    }
+#endif
 
     this->currentTick++;
 
@@ -605,14 +656,16 @@ class InfoScreens {
       this->ticksStarted = ticks;
     }
 
-    this->drawHeader();
     if (doNext || doUpdate) {
+      // Show/update screens
       this->redrawScreen(doNext);
       this->ticksUpdated = ticks;
     }
-    this->drawFooter();
-
-    // Show/update screens
+    if (doSystem) {
+      this->drawHeader();
+      this->drawFooter();
+      this->ticksSystem = ticks;
+    }
   }
 
   void resetLoop() {
@@ -635,6 +688,9 @@ class InfoScreens {
 
 #ifdef USE_POWER_STATION
   void setPowerStation(PowerStation* ref) { this->powerStation = ref; }
+#endif
+#ifdef USE_HW_BUTTON
+  void setHwButton(HwButton* ref) { this->hwButton = ref; }
 #endif
 #ifdef USE_TEMP_SENSOR
   void setTempSensor(TempSensor* ref) { this->tempSensor = ref; }
@@ -681,6 +737,10 @@ class InfoScreens {
     if (!this->powerStation)
       Serial.println(YELLOW "[InfoScreens]: PowerStation absent!" RESET);
 #endif
+#ifdef USE_HW_BUTTON
+    if (!this->hwButton)
+      Serial.println(YELLOW "[InfoScreens]: HwButton absent!" RESET);
+#endif
 #ifdef USE_TEMP_SENSOR
     if (!this->tempSensor)
       Serial.println(YELLOW "[InfoScreens]: TempSensor absent!" RESET);
@@ -701,16 +761,16 @@ class InfoScreens {
 
 #ifdef InfoScreens_DEBUG
     // DEBUG
-    Serial.printf("[InfoScreens] Screens count=%d basicScreens=%d\n",
-                  this->screens.size(), basicScreensCount);
+    Serial.printf("Screens count=%d basicScreens=%d\n", this->screens.size(),
+                  basicScreensCount);
     for (size_t i = 0; i < this->screens.size(); i++) {
       const TShowScreen& scr = this->screens[i];
       const TScreenType type = scr.type;
       const String name = getScreenTypeName(type);
-      Serial.printf("[InfoScreens] %2d. Screen %d (%s)", i, type, name.c_str());
+      Serial.printf("%2d. Screen type %d: %s", i, type, name.c_str());
       // It's a power plan screen
-      if (powerPlanIdx >= 0) {
-        Serial.printf(" Power plan #%d", this->powerPlanIdx + 1);
+      if (i >= basicScreensCount) {
+        Serial.printf(" Power plan #%d", i - basicScreensCount);
       }
       Serial.println();
     }

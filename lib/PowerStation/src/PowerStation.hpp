@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "PowerPlan.hpp"
+#include "TimeUtils.hpp"
 #include "constants.hpp"
 
 /** List of channel pin numbers. Each channel should correspond its own channel
@@ -38,6 +39,8 @@ class PowerStation {
  private:
   bool inited = false;
 
+  TTick lastTicks = 0;
+
   TFTUtils* tftUtils = nullptr;  // NOTE: Kept only for `PowerPlan` constructor
 
   // List of plan items
@@ -63,9 +66,18 @@ class PowerStation {
 
   void nextTick() {
     if (!this->inited) return;
+
+    const TTick ticks = millis();
+    const TTick timeDiff = ticks - this->lastTicks;
+
+    // Throttle
+    if (timeDiff < 200) return;
+
     for (size_t i = 0; i < POWER_CHANNELS_COUNT; i++) {
       this->plans[i].nextTick();
     }
+
+    this->lastTicks = ticks;
   }
 
   PowerPlan* getPowerPlanByIdx(size_t idx) {
