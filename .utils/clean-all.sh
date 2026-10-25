@@ -1,6 +1,6 @@
 #!/bin/sh
 # @desc Clean all temp files
-# @changed 2026.01.13, 18:45
+# @changed 2026.10.16, 01:50
 
 scriptsPath=$(dirname "$(echo "$0" | sed -e 's,\\,/,g')")
 rootPath=`dirname "$scriptsPath"`
@@ -13,6 +13,8 @@ test -f "$scriptsPath/config-local.sh" && . "$scriptsPath/config-local.sh"
 echo "Clearing the root folder..."
 $RMCMD -Rf \
   build \
+  .pio \
+  .ccls-cache \
   .next \
   .swc \
   node_modules/.cache \

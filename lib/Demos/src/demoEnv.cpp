@@ -9,4 +9,3 @@ void Demos::demoEnv() {
   Serial.println("TFT_RST: " + String(TFT_RST));
   Serial.println("TFT_CS: " + String(TFT_CS));
 }
-

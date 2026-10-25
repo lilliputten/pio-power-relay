@@ -1,30 +1,40 @@
 {
   "name": "pio-power-relay",
   "description": "ESP32 Controlled Power Relay PlatformIO Project",
-  "version": "0.0.0",
-  "timetag": "261001-2139",
-  "timestamp": "2026.10.01 21:39:20 +0300",
-  "changed": "2026.10.01, 21:39",
+  "version": "0.0.1",
+  "timetag": "261020-0500",
+  "timestamp": "2026.10.20 05:00:25 +0300",
+  "changed": "2026.10.19, 23:10",
   "main": "src/main.cpp",
   "author": "lilliputten@gmail.com",
   "license": "MIT",
+  "$schema": "https://json.schemastore.org/package.json",
   "repository": {
     "type": "git",
     "url": "git@github.com:lilliputten/pio-power-relay.git"
   },
   "bugs": {
-    "url": "git@github.com:lilliputten/pio-power-relay.git/issues"
+    "url": "https://github.com/lilliputten/pio-power-relay/issues",
+    "email": "lilliputten@gmail.com"
   },
   "dependencies": {
+  },
+  "devDependencies": {
     "npm-run-all": "^4.1.5"
   },
   "scripts": {
-    "upload-and-monitor": "npm-run-all upload monitor",
-    "build": "pio run -e esp32dev",
-    "upload": "pio run -e esp32dev -t upload",
-    "clean": "pio run -e esp32dev -t clean",
-    "monitor": "pio device monitor",
-    "ide-config": "pio init --ide vim",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "upload-and-monitor": "echo --Upload (build if needed) the project, then run serial monitor-- && npm-run-all upload monitor",
+    "build": "echo --Build the project-- && pio run -e esp32dev",
+    "upload": "echo --Upload (build if needed) the project to connected device-- && pio run -e esp32dev -t upload",
+    "clean-pio": "echo --Cleanup the project files-- && pio run -e esp32dev -e native -t clean -v",
+    "monitor": "echo --Run serial monitor for the connected device-- && pio device monitor",
+    "format-project-files": "echo --Format files in the git project-- && git ls-files | grep -E '\\\\.[ch]p*$' | xargs clang-format -i --verbose",
+    "format": "echo --Format files-- && node find-source-files.js | xargs clang-format -i --verbose",
+    "check": "echo --Run source code static analyzing-- && pio check -e esp32dev --src-filters=\"+<src/>\" --src-filters=\"-<.pio/>\"",
+    "uploadfs": "echo --Re-upload LittleFS files from data folder-- && pio run -e esp32dev --target buildfs && pio run -e esp32dev --target uploadfs",
+    "ide-config-vim": "echo --Initialize vim environment-- && pio init --ide vim",
+    "ide-config-vscode-default": "echo --Initialize vscode default environment-- && pio init --ide vscode --environment esp32dev",
+    "ide-config-vscode-native": "echo --Initialize vscode test environment-- && pio init --ide vscode --environment native",
+    "test": "echo --Run tests-- && pio test -e native"
   }
 }

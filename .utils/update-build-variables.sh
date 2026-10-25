@@ -1,6 +1,6 @@
 #!/bin/sh
 # @desc Update version number & build timestamps
-# @changed 2025.08.01, 22:20
+# @changed 2026.10.03, 20:27
 
 scriptsPath=$(dirname "$(echo "$0" | sed -e 's,\\,/,g')")
 rootPath=`dirname "$scriptsPath"`
@@ -74,6 +74,10 @@ UPDATE_FILE() {
       | sed "s/\(__timestamp__ =\) \([\"']\).*\2/\1 \2$TIMESTAMP\2/" \
       | sed "s/\(__timetag__ =\) \([\"']\).*\2/\1 \2$TIMETAG\2/" \
     > $FILE || exit 1
+  elif [ "$EXT" = "ini" ]; then # platformio.ini
+    cat $FILE.bak \
+      | sed "s/\(-D PROJECT_INFO=\)\([\"']\).*\2/\1\2$PROJECT_INFO_REP\2/" \
+    > $FILE || exit 1
   else # MD
     cat $FILE.bak \
       | sed "s/^\(-* *Project info:\) .*$/\1 $PROJECT_INFO_REP/" \
@@ -92,5 +96,4 @@ UPDATE_FILE "$prjPath/server/package.json"
 UPDATE_FILE "$prjPath/pyproject.toml"
 UPDATE_FILE "$prjPath/package-lock.json"
 UPDATE_FILE "$prjPath/README.md"
-UPDATE_FILE "$prjPath/client/README.md"
-UPDATE_FILE "$prjPath/server/README.md"
+UPDATE_FILE "$prjPath/platformio.ini"
